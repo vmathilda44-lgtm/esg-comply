@@ -1,0 +1,2913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ESG Comply — Sustainability, Ethical &amp; OHS Audit Suite</title>
+
+  <!-- PWA & Mobile Web Capabilities -->
+  <meta name="theme-color" content="#f0f9ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ESG Comply">
+  <meta name="description" content="Offline-first ESG, WIETA V5, IPW Farm & Statutory OHS inspection suite with in-field camera markup, CAPA tracking and PDF reporting.">
+
+  <!-- Core Scripts & Frameworks (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: {
+              50: '#fdfbf7',
+              100: '#faf7f2',
+              200: '#f5eee3',
+              300: '#ece1cf',
+              400: '#dfcdb4',
+              500: '#cbb391'
+            },
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e'
+            },
+            advini: {
+              gold: '#b89d66',
+              bronze: '#8c734b',
+              navy: '#1b2a47'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            serif: ['Georgia', 'Cambria', 'serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      background-color: #faf7f2;
+      color: #1e293b;
+    }
+
+    /* Print styles for audit dossier generation */
+    @media print {
+      body { background: white !important; }
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      .page-break { page-break-after: always; }
+      .shadow-sm, .shadow-md, .shadow-lg { box-shadow: none !important; }
+      .border { border-color: #cbd5e1 !important; }
+    }
+
+    .signature-canvas {
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .annotation-canvas {
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    /* Smooth scroll behavior */
+    html { scroll-behavior: smooth; }
+
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f5eee3; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="min-vh-100 flex flex-col antialiased selection:bg-brand-100 selection:text-brand-900">
+
+  <!-- Offline Network Banner -->
+  <div id="offline-banner" class="hidden no-print bg-amber-500 text-white text-xs font-semibold px-4 py-2 text-center transition-all duration-300 flex items-center justify-center gap-2 shadow-sm">
+    <i data-lucide="wifi-off" class="w-4 h-4"></i>
+    <span><strong>Offline Field Mode Active:</strong> Inspections, photo markups, and sign-offs are saving securely to device storage.</span>
+  </div>
+
+        <!-- Brand Identity / Neutral ESG Comply Logo -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('overview')">
+          <div id="app-logo-container" class="flex items-center gap-3">
+            <!-- Modern Dynamic ESG Comply Vector Shield Icon -->
+            <div class="w-12 h-12 rounded-xl bg-white p-1 border border-cream-300 shadow-sm flex items-center justify-center flex-shrink-0">
+              <svg viewBox="0 0 100 100" class="w-full h-full">
+                <defs>
+                  <linearGradient id="esgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#0284c7" />
+                    <stop offset="100%" stop-color="#10b981" />
+                  </linearGradient>
+                </defs>
+                <path d="M50,10 L82,24 C82,54 68,78 50,90 C32,78 18,54 18,24 Z" fill="#f0f9ff" stroke="url(#esgGrad)" stroke-width="4"/>
+                <path d="M50,22 L72,32 C72,54 61,72 50,80 C39,72 28,54 28,32 Z" fill="#e0f2fe" opacity="0.4"/>
+                <path d="M42,50 L48,56 L62,40" fill="none" stroke="#0284c7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xl font-bold tracking-tight text-slate-900">ESG Comply</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-brand-50 text-brand-700 border border-brand-200">v5.3 Enterprise</span>
+              </div>
+              <div class="text-[11px] font-medium tracking-wide text-slate-500 uppercase flex items-center gap-1.5">
+                <span>Sustainability &amp; OHS Bureau</span>
+                <span class="text-slate-300">•</span>
+                <span class="text-slate-600 font-semibold lowercase">environmental, social &amp; governance</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Nav Tabs (Desktop) -->
+        <nav class="hidden md:flex items-center gap-1 bg-cream-100 p-1.5 rounded-2xl border border-cream-300">
+          <button onclick="switchView('overview')" id="nav-btn-overview" class="nav-tab-btn active px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-150 flex items-center gap-2 bg-white text-brand-700 shadow-sm border border-brand-200">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>Overview</span>
+          </button>
+          <button onclick="switchView('audit')" id="nav-btn-audit" class="nav-tab-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition-all duration-150 flex items-center gap-2">
+            <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+            <span>Live Audit</span>
+            <span id="badge-pending-count" class="px-1.5 py-0.2 bg-brand-100 text-brand-700 text-[10px] rounded-full font-bold">16</span>
+          </button>
+          <button onclick="switchView('capa')" id="nav-btn-capa" class="nav-tab-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition-all duration-150 flex items-center gap-2">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+            <span>CAPA Actions</span>
+            <span id="badge-capa-count" class="px-1.5 py-0.2 bg-red-100 text-red-700 text-[10px] rounded-full font-bold">0</span>
+          </button>
+          <button onclick="switchView('history')" id="nav-btn-history" class="nav-tab-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition-all duration-150 flex items-center gap-2">
+            <i data-lucide="history" class="w-4 h-4"></i>
+            <span>History &amp; Trends</span>
+          </button>
+          <button onclick="switchView('report')" id="nav-btn-report" class="nav-tab-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition-all duration-150 flex items-center gap-2">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+            <span>Report Dossier</span>
+          </button>
+          <button onclick="switchView('admin')" id="nav-btn-admin" class="nav-tab-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition-all duration-150 flex items-center gap-2">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            <span>Admin Portal</span>
+          </button>
+        </nav>
+
+        <!-- Right Quick Actions -->
+        <div class="flex items-center gap-2">
+          <!-- Download index.html Direct Button -->
+          <button onclick="downloadSelfSourceFile()" title="Download complete standalone index.html for deployment" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-cream-100 hover:bg-cream-200 text-slate-700 border border-cream-300 transition-colors">
+            <i data-lucide="download-cloud" class="w-3.5 h-3.5 text-slate-600"></i>
+            <span>Download App File</span>
+          </button>
+
+          <!-- New Audit Dropdown Trigger -->
+          <button onclick="openNewAuditModal()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition-all hover:shadow active:scale-95">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <span>New Audit</span>
+          </button>
+
+          <!-- Diagnostic Telemetry Modal Button -->
+          <button onclick="openTelemetryModal()" title="Field Diagnostics & Storage" class="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-cream-200 transition-colors">
+            <i data-lucide="activity" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Mobile Scrollable Sub-nav -->
+      <div class="md:hidden flex items-center gap-1 py-2 overflow-x-auto border-t border-cream-200 no-scrollbar">
+        <button onclick="switchView('overview')" id="mob-nav-overview" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-brand-700 border border-brand-200 shadow-sm">Overview</button>
+        <button onclick="switchView('audit')" id="mob-nav-audit" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600">Live Audit (<span id="mob-pending-count">16</span>)</button>
+        <button onclick="switchView('capa')" id="mob-nav-capa" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600">CAPA (<span id="mob-capa-count">0</span>)</button>
+        <button onclick="switchView('history')" id="mob-nav-history" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600">History</button>
+        <button onclick="switchView('report')" id="mob-nav-report" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600">Report</button>
+        <button onclick="switchView('admin')" id="mob-nav-admin" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600">Admin</button>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- ==========================================
+         VIEW 1: EXECUTIVE OVERVIEW & KPI DASHBOARD
+         ========================================== -->
+    <section id="view-overview" class="view-panel space-y-6">
+      
+      <!-- Top Hero Welcome Card -->
+      <div class="bg-gradient-to-r from-brand-50 via-white to-cream-100 rounded-3xl p-6 sm:p-8 border border-cream-300 shadow-sm relative overflow-hidden">
+        <div class="absolute -right-8 -bottom-8 w-64 h-64 bg-brand-100/40 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <span id="active-standard-tag" class="px-2.5 py-1 rounded-full text-xs font-bold bg-brand-100 text-brand-800 border border-brand-200">
+                IPW Farm Guidelines 2026
+              </span>
+              <span class="text-xs text-slate-500 font-medium flex items-center gap-1">
+                <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                <span id="audit-timestamp-label">Active Audit In Progress</span>
+              </span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              <span id="display-facility-name">Operational Facility / Estate Verification</span>
+            </h1>
+            <p id="display-standard-desc" class="text-sm text-slate-600 max-w-3xl leading-relaxed">
+              Integrated Production of Wine (IPW) &amp; WIETA Compliance Assessment. Monitoring sustainable viticulture, agrochemical stewardship, spray operator hygiene, soil conservation, and occupational health standards.
+            </p>
+          </div>
+          
+          <!-- Quick Status Score Dial -->
+          <div class="flex items-center gap-4 bg-white/90 p-4 rounded-2xl border border-cream-300 shadow-sm flex-shrink-0">
+            <div class="text-center">
+              <div class="text-xs uppercase font-bold text-slate-400 tracking-wider">Score</div>
+              <div id="hero-score-value" class="text-3xl font-black text-brand-600">0%</div>
+            </div>
+            <div class="w-px h-10 bg-cream-300"></div>
+            <div class="text-left space-y-0.5">
+              <div class="text-xs font-semibold text-slate-700">Audit Status</div>
+              <div id="hero-status-pill" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                <span>In Progress</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Summary 4-Grid -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1 -->
+        <div class="bg-white rounded-2xl p-5 border border-cream-300 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Total Checks</span>
+            <div class="w-8 h-8 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600">
+              <i data-lucide="list-checks" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-black text-slate-900" id="stat-total-checks">16</div>
+          <p class="text-[11px] text-slate-500 mt-1">Requirements in active standard</p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-white rounded-2xl p-5 border border-cream-300 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Passed Items</span>
+            <div class="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-black text-emerald-600" id="stat-passed-checks">0</div>
+          <div class="w-full bg-cream-200 h-1.5 rounded-full mt-2 overflow-hidden">
+            <div id="stat-pass-bar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-white rounded-2xl p-5 border border-cream-300 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Failed / Non-Compliant</span>
+            <div class="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-black text-red-600" id="stat-failed-checks">0</div>
+          <p class="text-[11px] text-slate-500 mt-1">Automatic CAPA triggers created</p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="bg-white rounded-2xl p-5 border border-cream-300 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">Pending Audit</span>
+            <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+              <i data-lucide="hourglass" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-black text-amber-600" id="stat-pending-checks">16</div>
+          <p class="text-[11px] text-slate-500 mt-1">Items awaiting verification</p>
+        </div>
+      </div>
+
+      <!-- Charts & Visual Section Performance -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Bar Chart: Category Compliance -->
+        <div class="lg:col-span-2 bg-white rounded-2xl p-6 border border-cream-300 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Module &amp; Section Performance</h2>
+              <p class="text-xs text-slate-500">Compliance percentages categorized by operational domain</p>
+            </div>
+            <span class="text-xs font-semibold px-2 py-1 bg-cream-100 rounded-lg text-slate-600 border border-cream-300">Target: 85%</span>
+          </div>
+          <div class="relative h-64 sm:h-72 w-full">
+            <canvas id="categoryComplianceChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Quick Action Card & Standards Switcher -->
+        <div class="bg-white rounded-2xl p-6 border border-cream-300 shadow-sm flex flex-col justify-between space-y-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 mb-1">Standard Direct Switcher</h2>
+            <p class="text-xs text-slate-500 mb-4">Switch or preload verified guidelines for your vineyard, cellar, or processing facility.</p>
+            
+            <div class="space-y-2.5">
+              <button onclick="loadPredefinedTemplate('ipw_farm')" class="w-full text-left p-3 rounded-xl border border-cream-300 hover:border-brand-400 hover:bg-brand-50/50 transition-all flex items-center justify-between group">
+                <div>
+                  <div class="text-xs font-bold text-slate-800 group-hover:text-brand-700">IPW Farm Guidelines 2026</div>
+                  <div class="text-[11px] text-slate-500">Biodiversity, IPM, spray records, water testing</div>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-brand-600"></i>
+              </button>
+
+              <button onclick="loadPredefinedTemplate('wieta_v5')" class="w-full text-left p-3 rounded-xl border border-cream-300 hover:border-brand-400 hover:bg-brand-50/50 transition-all flex items-center justify-between group">
+                <div>
+                  <div class="text-xs font-bold text-slate-800 group-hover:text-brand-700">WIETA Standard Version 5</div>
+                  <div class="text-[11px] text-slate-500">Human rights, housing, transport, fair pay &amp; OHS</div>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-brand-600"></i>
+              </button>
+
+              <button onclick="loadPredefinedTemplate('sa_ohs')" class="w-full text-left p-3 rounded-xl border border-cream-300 hover:border-brand-400 hover:bg-brand-50/50 transition-all flex items-center justify-between group">
+                <div>
+                  <div class="text-xs font-bold text-slate-800 group-hover:text-brand-700">Statutory OHS Act 85/1993</div>
+                  <div class="text-[11px] text-slate-500">Sec 16.2 appointments, GMR 2, Health Act 63/1977</div>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-brand-600"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-cream-200">
+            <button onclick="switchView('audit')" class="w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs shadow-sm flex items-center justify-center gap-2 transition-all">
+              <i data-lucide="play" class="w-4 h-4"></i>
+              <span>Continue Field Inspection</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==========================================
+         VIEW 2: LIVE AUDIT & CHECKLIST WORKSPACE
+         ========================================== -->
+    <section id="view-audit" class="view-panel hidden space-y-4">
+      
+      <!-- Sticky Filter & Search Control Bar -->
+      <div class="bg-white rounded-2xl p-4 border border-cream-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Filter by Status -->
+          <button onclick="setAuditFilter('all')" id="filter-btn-all" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-sm">All (<span id="count-all">16</span>)</button>
+          <button onclick="setAuditFilter('pending')" id="filter-btn-pending" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-cream-100 text-slate-700 hover:bg-cream-200">Pending (<span id="count-pending">16</span>)</button>
+          <button onclick="setAuditFilter('pass')" id="filter-btn-pass" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-cream-100 text-slate-700 hover:bg-cream-200">Passed (<span id="count-passed">0</span>)</button>
+          <button onclick="setAuditFilter('fail')" id="filter-btn-fail" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-cream-100 text-slate-700 hover:bg-cream-200">Non-Conform (<span id="count-failed">0</span>)</button>
+          <button onclick="setAuditFilter('na')" id="filter-btn-na" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-cream-100 text-slate-700 hover:bg-cream-200">N/A (<span id="count-na">0</span>)</button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Category Select Filter -->
+          <div class="relative">
+            <select id="select-category-filter" onchange="renderChecklist()" class="text-xs bg-cream-50 border border-cream-300 rounded-xl px-3 py-1.5 pr-8 text-slate-700 font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <option value="ALL">All Operational Modules</option>
+              <!-- Populated dynamically based on loaded checklist -->
+            </select>
+          </div>
+
+          <!-- Add Quick Checkpoint Button -->
+          <button onclick="openAddCheckModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200 hover:bg-brand-100 transition-colors flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add Check</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Checklist Items Container -->
+      <div id="checklist-container" class="space-y-4">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+
+    </section>
+
+    <!-- ==========================================
+         VIEW 3: CAPA & NON-CONFORMANCE ACTIONS
+         ========================================== -->
+    <section id="view-capa" class="view-panel hidden space-y-4">
+      <div class="bg-white rounded-2xl p-6 border border-cream-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Corrective &amp; Preventative Actions (CAPA)</h2>
+          <p class="text-xs text-slate-500">Every audit failure automatically populates here with remediation targets and responsible owners.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-800 border border-red-200">
+            Open Actions: <strong id="capa-open-count">0</strong>
+          </span>
+        </div>
+      </div>
+
+      <!-- CAPA Cards List -->
+      <div id="capa-container" class="space-y-4">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIEW 4: AUDIT HISTORY & LONGITUDINAL TRENDS
+         ========================================== -->
+    <section id="view-history" class="view-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 border border-cream-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Historical Audit Registry &amp; Compliance Trends</h2>
+          <p class="text-xs text-slate-500">Track longitudinal estate compliance progression against the 85% statutory benchmark.</p>
+        </div>
+        <button onclick="archiveCurrentAuditPrompt()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-advini-gold hover:bg-advini-bronze text-white shadow-sm flex items-center gap-1.5 transition-colors">
+          <i data-lucide="archive" class="w-4 h-4"></i>
+          <span>Lock &amp; Archive Current Audit</span>
+        </button>
+      </div>
+
+      <!-- Compliance Trend Chart -->
+      <div class="bg-white rounded-2xl p-6 border border-cream-300 shadow-sm space-y-4">
+        <h3 class="text-sm font-bold text-slate-800">Historical Compliance Trend</h3>
+        <div class="relative h-64 w-full">
+          <canvas id="historicalTrendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Archived Audits Table -->
+      <div class="bg-white rounded-2xl border border-cream-300 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-cream-200 font-bold text-sm text-slate-800">Archived Inspection Dossiers</div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-cream-50 text-slate-500 uppercase font-semibold border-b border-cream-200">
+              <tr>
+                <th class="px-4 py-3">Audit Reference</th>
+                <th class="px-4 py-3">Standard</th>
+                <th class="px-4 py-3">Facility / Estate</th>
+                <th class="px-4 py-3">Date Completed</th>
+                <th class="px-4 py-3">Final Score</th>
+                <th class="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="archived-audits-table-body" class="divide-y divide-cream-100">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIEW 5: REPORT DOSSIER & SIGN-OFF
+         ========================================== -->
+    <section id="view-report" class="view-panel hidden space-y-6">
+      
+      <!-- Top Action Bar -->
+      <div class="no-print bg-white rounded-2xl p-4 border border-cream-300 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-800">Export Certified Dossier:</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="downloadPDFReport()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-sm flex items-center gap-1.5 transition-all">
+            <i data-lucide="file-down" class="w-4 h-4"></i>
+            <span>Download Official PDF</span>
+          </button>
+          <button onclick="downloadCSVReport()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1.5 transition-all">
+            <i data-lucide="sheet" class="w-4 h-4"></i>
+            <span>Export Findings CSV</span>
+          </button>
+          <button onclick="window.print()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-cream-100 hover:bg-cream-200 text-slate-700 border border-cream-300 transition-colors flex items-center gap-1.5">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Print View</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Printable Certified Report Container -->
+      <div id="printable-dossier" class="bg-white rounded-3xl p-6 sm:p-10 border border-cream-300 shadow-md space-y-8">
+        
+        <!-- Dossier Header -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-6 border-b-2 border-slate-900">
+          <div class="flex items-center gap-4">
+            <div id="dossier-logo-slot" class="w-16 h-16 rounded-2xl bg-white p-1 border border-cream-300 shadow-sm flex items-center justify-center flex-shrink-0">
+              <svg viewBox="0 0 100 100" class="w-full h-full">
+                <path d="M50,10 L82,24 C82,54 68,78 50,90 C32,78 18,54 18,24 Z" fill="#f0f9ff" stroke="#0284c7" stroke-width="4"/>
+                <path d="M42,50 L48,56 L62,40" fill="none" stroke="#0284c7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <div class="text-xs uppercase tracking-widest font-extrabold text-brand-700">ESG Comply • Audit &amp; Verification Bureau</div>
+              <h1 class="text-2xl font-black text-slate-900">SUSTAINABILITY &amp; OHS COMPLIANCE DOSSIER</h1>
+              <div class="text-xs text-slate-500 font-mono mt-0.5">Reference: <span id="dossier-ref-number">ESG-IPW-FARM-2026-001</span></div>
+            </div>
+          </div>
+
+          <div class="text-right">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Overall Score</div>
+            <div id="dossier-score-value" class="text-4xl font-black text-slate-900">0%</div>
+            <span id="dossier-status-badge" class="inline-block mt-1 px-3 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">In Progress</span>
+          </div>
+        </div>
+
+        <!-- Facility & Auditor Metadata Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-cream-50 border border-cream-200 text-xs">
+          <div>
+            <div class="text-slate-400 font-medium">Estate / Facility:</div>
+            <div class="font-bold text-slate-800" id="dossier-site-name">Stellenbosch Vineyards</div>
+          </div>
+          <div>
+            <div class="text-slate-400 font-medium">Standard Audited:</div>
+            <div class="font-bold text-slate-800" id="dossier-standard-name">IPW Farm Guidelines</div>
+          </div>
+          <div>
+            <div class="text-slate-400 font-medium">Lead Auditor:</div>
+            <div class="font-bold text-slate-800" id="dossier-lead-auditor">H. Van Der Merwe (Cert OHS)</div>
+          </div>
+          <div>
+            <div class="text-slate-400 font-medium">Inspection Date:</div>
+            <div class="font-bold text-slate-800" id="dossier-audit-date">15 October 2026</div>
+          </div>
+        </div>
+
+        <!-- Dossier Non-Conformance Section -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between border-b border-cream-300 pb-2">
+            <h3 class="text-base font-bold text-slate-900">Non-Conformance &amp; Remediation Log</h3>
+            <span class="text-xs font-semibold text-red-600" id="dossier-nonconform-summary">0 Outstanding Deviations</span>
+          </div>
+          <div id="dossier-capa-table-slot" class="space-y-3">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Full Item Audit Register -->
+        <div class="space-y-4">
+          <div class="border-b border-cream-300 pb-2">
+            <h3 class="text-base font-bold text-slate-900">Full Verification Register</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-700">
+              <thead class="bg-cream-100 text-slate-600 font-bold uppercase text-[11px] border-b border-cream-200">
+                <tr>
+                  <th class="px-3 py-2">ID</th>
+                  <th class="px-3 py-2">Operational Module</th>
+                  <th class="px-3 py-2">Audit Checkpoint &amp; Statutory Rule</th>
+                  <th class="px-3 py-2">Result</th>
+                  <th class="px-3 py-2">Inspector Observations</th>
+                </tr>
+              </thead>
+              <tbody id="dossier-register-tbody" class="divide-y divide-cream-100">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Dual Digital Sign-off Section -->
+        <div class="pt-6 border-t-2 border-slate-900 space-y-4">
+          <h3 class="text-base font-bold text-slate-900">Statutory Digital Sign-Off &amp; Endorsement</h3>
+          <p class="text-xs text-slate-500">I hereby certify that the inspections detailed above represent a true and accurate on-site verification.</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+            <!-- Pad 1: Lead Auditor -->
+            <div class="border border-cream-300 rounded-2xl p-4 bg-cream-50/50 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-slate-800">Lead Auditor / Inspector Signature</span>
+                <button onclick="clearSignature('auditor')" class="no-print text-red-600 hover:underline text-[11px]">Clear</button>
+              </div>
+              <div class="bg-white rounded-xl border border-cream-300 overflow-hidden shadow-inner h-28 relative">
+                <canvas id="canvas-sig-auditor" class="signature-canvas w-full h-full"></canvas>
+              </div>
+              <div class="flex items-center justify-between text-[11px] text-slate-500">
+                <span id="sig-auditor-name-display">H. Van Der Merwe</span>
+                <span>Date: 15 Oct 2026</span>
+              </div>
+            </div>
+
+            <!-- Pad 2: Area / Vineyard Manager -->
+            <div class="border border-cream-300 rounded-2xl p-4 bg-cream-50/50 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-slate-800">Estate / Cellar Representative Signature</span>
+                <button onclick="clearSignature('manager')" class="no-print text-red-600 hover:underline text-[11px]">Clear</button>
+              </div>
+              <div class="bg-white rounded-xl border border-cream-300 overflow-hidden shadow-inner h-28 relative">
+                <canvas id="canvas-sig-manager" class="signature-canvas w-full h-full"></canvas>
+              </div>
+              <div class="flex items-center justify-between text-[11px] text-slate-500">
+                <span id="sig-manager-name-display">Facility Operations Manager</span>
+                <span>Date: 15 Oct 2026</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==========================================
+         VIEW 6: ADMIN PORTAL & TEMPLATE BUILDER
+         ========================================== -->
+    <section id="view-admin" class="view-panel hidden space-y-6">
+      
+      <!-- Admin Sub Tabs Navigation -->
+      <div class="flex items-center gap-2 border-b border-cream-300 pb-3">
+        <button onclick="switchAdminTab('templates')" id="admin-subtab-templates" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-brand-700 shadow-sm border border-brand-200">
+          Standard Checklists &amp; Templates
+        </button>
+        <button onclick="switchAdminTab('team')" id="admin-subtab-team" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-cream-100">
+          Colleague Invitations &amp; Team
+        </button>
+        <button onclick="switchAdminTab('config')" id="admin-subtab-config" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-cream-100">
+          Facility &amp; Audit Config
+        </button>
+      </div>
+
+      <!-- Tab Content: Templates -->
+      <div id="admin-content-templates" class="space-y-4">
+        <div class="bg-white rounded-2xl p-6 border border-cream-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Checklist Template Repository</h3>
+            <p class="text-xs text-slate-500">Load ready-made wine industry standards or build a custom questionnaire from scratch.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <!-- Create Template from Scratch Button -->
+            <button onclick="openTemplateBuilderModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-advini-gold hover:bg-advini-bronze text-white shadow-sm flex items-center gap-1.5 transition-colors">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>Create Template from Scratch</span>
+            </button>
+            <!-- JSON Import Button -->
+            <button onclick="triggerTemplateImport()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-cream-100 hover:bg-cream-200 text-slate-700 border border-cream-300 transition-colors flex items-center gap-1.5">
+              <i data-lucide="upload" class="w-4 h-4"></i>
+              <span>Import JSON</span>
+            </button>
+            <input type="file" id="template-json-input" class="hidden" accept=".json" onchange="handleTemplateFileChosen(event)">
+          </div>
+        </div>
+
+        <!-- Templates Grid -->
+        <div id="admin-templates-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Tab Content: Team & Colleague Invitations -->
+      <div id="admin-content-team" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl p-6 border border-cream-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Safety Committee &amp; Inspector Roster</h3>
+            <p class="text-xs text-slate-500">Invite estate managers, cellar hands, and certified safety officers to collaborate.</p>
+          </div>
+          <button onclick="openInviteModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-sm flex items-center gap-1.5 transition-colors">
+            <i data-lucide="user-plus" class="w-4 h-4"></i>
+            <span>Invite Colleague by Email</span>
+          </button>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-cream-300 shadow-sm overflow-hidden">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-cream-100 text-slate-600 font-bold uppercase text-[11px] border-b border-cream-200">
+              <tr>
+                <th class="px-4 py-3">Member Name</th>
+                <th class="px-4 py-3">Work Email</th>
+                <th class="px-4 py-3">Assigned Role</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="team-roster-tbody" class="divide-y divide-cream-100">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab Content: Facility Config & Logo Upload -->
+      <div id="admin-content-config" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl p-6 border border-cream-300 shadow-sm space-y-6">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Facility &amp; Audit Profile Configuration</h3>
+            <p class="text-xs text-slate-500">Configure global metadata for reports, certificates, and evidence watermarking.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Estate / Facility Name</label>
+                <input type="text" id="config-input-facility" value="Operational Facility / Estate Verification" class="w-full text-xs p-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Lead Auditor / Inspector Name</label>
+                <input type="text" id="config-input-auditor" value="Lead Compliance Auditor (Cert OHS / IPW)" class="w-full text-xs p-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Audit Reference Prefix</label>
+                <input type="text" id="config-input-ref" value="ESG-IPW-FARM-2026-001" class="w-full text-xs p-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              </div>
+            </div>
+
+            <!-- Logo Upload & Preview -->
+            <div class="space-y-3">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Custom Corporate Logo</label>
+              <div class="p-4 rounded-2xl border-2 border-dashed border-cream-300 bg-cream-50/50 flex flex-col items-center justify-center text-center space-y-2">
+                <div id="config-logo-preview" class="w-20 h-20 rounded-xl bg-white p-2 border border-cream-300 flex items-center justify-center shadow-sm">
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="M50,10 L82,24 C82,54 68,78 50,90 C32,78 18,54 18,24 Z" fill="#f0f9ff" stroke="#0284c7" stroke-width="4"/>
+                    <path d="M42,50 L48,56 L62,40" fill="none" stroke="#0284c7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <input type="file" id="config-logo-file" accept="image/*" class="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 cursor-pointer" onchange="handleCustomLogoUpload(event)">
+                <div class="flex items-center gap-2">
+                  <button onclick="resetToOfficialLogo()" class="text-[11px] text-brand-700 hover:underline">Reset to Default ESG Comply Shield</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-cream-200 flex justify-end">
+            <button onclick="saveAdminSettings()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs shadow-sm transition-all flex items-center gap-1.5">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>Save Configuration</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==========================================
+       MODAL 1: MITTI-STYLE CAMERA MARKUP STUDIO
+       ========================================== -->
+  <div id="modal-markup" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[95vh] flex flex-col shadow-2xl overflow-hidden border border-cream-300 animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Studio Header -->
+      <div class="px-6 py-4 border-b border-cream-200 bg-cream-50 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
+            <i data-lucide="camera" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">In-Field Evidence Markup Studio</h3>
+            <p id="markup-item-title" class="text-xs text-slate-500 truncate max-w-sm">Item Evidence Capture</p>
+          </div>
+        </div>
+        <button onclick="closeMarkupModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-cream-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Studio Body (Canvas + Tools) -->
+      <div class="flex-grow flex flex-col md:flex-row overflow-hidden bg-slate-950">
+        
+        <!-- Canvas Stage -->
+        <div class="flex-grow flex items-center justify-center p-4 relative overflow-auto">
+          <canvas id="markup-canvas" class="annotation-canvas rounded-lg shadow-2xl max-w-full max-h-[60vh] md:max-h-[70vh] bg-slate-900"></canvas>
+          <div id="markup-placeholder" class="text-center p-8 text-slate-400">
+            <i data-lucide="image-plus" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+            <p class="text-xs">Take a photo or upload an image to begin hazard markup</p>
+          </div>
+        </div>
+
+        <!-- Annotation Tool Palette -->
+        <div class="w-full md:w-64 bg-slate-900 border-t md:border-t-0 md:border-l border-slate-800 p-4 flex flex-col justify-between space-y-4 text-xs text-slate-300">
+          
+          <div class="space-y-4">
+            <!-- Hardware Camera Trigger -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Capture Evidence</label>
+              <div class="grid grid-cols-2 gap-2">
+                <label class="cursor-pointer py-2 px-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-center flex items-center justify-center gap-1.5 shadow-sm">
+                  <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                  <span>Camera</span>
+                  <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleMarkupPhotoLoad(event)">
+                </label>
+                <label class="cursor-pointer py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-center flex items-center justify-center gap-1.5 border border-slate-700">
+                  <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                  <span>Gallery</span>
+                  <input type="file" accept="image/*" class="hidden" onchange="handleMarkupPhotoLoad(event)">
+                </label>
+              </div>
+            </div>
+
+            <!-- Annotation Tool Selectors -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Markup Tools</label>
+              <div class="grid grid-cols-3 gap-1.5">
+                <button onclick="setMarkupTool('circle')" id="tool-circle" class="tool-btn active py-2 rounded-lg bg-brand-600 text-white font-bold flex flex-col items-center gap-1">
+                  <i data-lucide="circle" class="w-3.5 h-3.5"></i>
+                  <span class="text-[10px]">Circle</span>
+                </button>
+                <button onclick="setMarkupTool('arrow')" id="tool-arrow" class="tool-btn py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex flex-col items-center gap-1">
+                  <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                  <span class="text-[10px]">Arrow</span>
+                </button>
+                <button onclick="setMarkupTool('rect')" id="tool-rect" class="tool-btn py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex flex-col items-center gap-1">
+                  <i data-lucide="square" class="w-3.5 h-3.5"></i>
+                  <span class="text-[10px]">Box</span>
+                </button>
+                <button onclick="setMarkupTool('draw')" id="tool-draw" class="tool-btn py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex flex-col items-center gap-1">
+                  <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i>
+                  <span class="text-[10px]">Draw</span>
+                </button>
+                <button onclick="setMarkupTool('text')" id="tool-text" class="tool-btn py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex flex-col items-center gap-1">
+                  <i data-lucide="type" class="w-3.5 h-3.5"></i>
+                  <span class="text-[10px]">Hazard</span>
+                </button>
+                <button onclick="undoMarkupAction()" class="py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex flex-col items-center gap-1">
+                  <i data-lucide="undo" class="w-3.5 h-3.5"></i>
+                  <span class="text-[10px]">Undo</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Color Palette -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Color</label>
+              <div class="flex items-center gap-2">
+                <button onclick="setMarkupColor('#ef4444')" class="w-6 h-6 rounded-full bg-red-500 ring-2 ring-white"></button>
+                <button onclick="setMarkupColor('#eab308')" class="w-6 h-6 rounded-full bg-yellow-500"></button>
+                <button onclick="setMarkupColor('#38bdf8')" class="w-6 h-6 rounded-full bg-sky-400"></button>
+                <button onclick="setMarkupColor('#10b981')" class="w-6 h-6 rounded-full bg-emerald-500"></button>
+                <button onclick="setMarkupColor('#ffffff')" class="w-6 h-6 rounded-full bg-white"></button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Save / Burn Watermark Button -->
+          <div class="pt-2 border-t border-slate-800">
+            <button onclick="burnWatermarkAndSaveMarkup()" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span>Burn Watermark &amp; Attach</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: CUSTOM TEMPLATE BUILDER STUDIO
+       ========================================== -->
+  <div id="modal-template-builder" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border border-cream-300 animate-in fade-in zoom-in-95 duration-200">
+      
+      <div class="px-6 py-4 border-b border-cream-200 bg-cream-50 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-advini-gold/20 text-advini-bronze flex items-center justify-center">
+            <i data-lucide="layout-template" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Custom Template Builder Studio</h3>
+            <p class="text-xs text-slate-500">Design an inspection checklist tailored to your facility, winery, or farm.</p>
+          </div>
+        </div>
+        <button onclick="closeTemplateBuilderModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-cream-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-6 flex-grow">
+        
+        <!-- Metadata Fields -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Checklist Title</label>
+            <input type="text" id="builder-template-title" placeholder="e.g., Cellar Bottling Line &amp; Pressure Vessels Audit" class="w-full text-xs p-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Standard / Regulatory Tag</label>
+            <input type="text" id="builder-template-standard" placeholder="e.g., ISO 14001 / OHS 1993" class="w-full text-xs p-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Target Operational Area</label>
+            <input type="text" id="builder-template-area" placeholder="e.g., Winery Cellar &amp; Tank Farm" class="w-full text-xs p-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Audit Scope &amp; Objective</label>
+            <textarea id="builder-template-desc" rows="2" placeholder="Brief explanation of what this audit verifies..." class="w-full text-xs p-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+          </div>
+        </div>
+
+        <!-- Dynamic Questions List -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between border-b border-cream-200 pb-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800">Inspection Checkpoints</h4>
+            <button onclick="addQuestionFieldToBuilder()" class="px-3 py-1 rounded-lg text-xs font-bold bg-brand-50 text-brand-700 border border-brand-200 hover:bg-brand-100 flex items-center gap-1">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>Add Question</span>
+            </button>
+          </div>
+
+          <div id="builder-questions-container" class="space-y-3">
+            <!-- Dynamically populated rows -->
+          </div>
+        </div>
+
+        <!-- Load Immediately Toggle -->
+        <div class="p-3 bg-brand-50 rounded-xl border border-brand-200 flex items-center justify-between">
+          <div class="text-xs">
+            <div class="font-bold text-brand-900">Activate Immediately</div>
+            <div class="text-brand-700">Load this template into the active audit workspace upon saving</div>
+          </div>
+          <input type="checkbox" id="builder-load-immediately" checked class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500">
+        </div>
+
+      </div>
+
+      <div class="px-6 py-4 border-t border-cream-200 bg-cream-50 flex items-center justify-end gap-3">
+        <button onclick="closeTemplateBuilderModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-cream-200">Cancel</button>
+        <button onclick="saveCustomTemplate()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs shadow-sm transition-all flex items-center gap-1.5">
+          <i data-lucide="save" class="w-4 h-4"></i>
+          <span>Save &amp; Register Template</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 3: START NEW AUDIT SELECTOR -->
+  <div id="modal-new-audit" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-cream-300 space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="folder-plus" class="w-5 h-5 text-brand-600"></i>
+          <h3 class="text-base font-bold text-slate-900">Start New Field Audit</h3>
+        </div>
+        <button onclick="closeNewAuditModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <p class="text-xs text-slate-500">Select which sustainability, ethical or safety framework you want to audit against:</p>
+      
+      <div class="space-y-2.5">
+        <button onclick="confirmNewAudit('ipw_farm')" class="w-full text-left p-3.5 rounded-2xl border border-cream-300 hover:border-brand-500 hover:bg-brand-50/60 transition-all flex items-center justify-between group">
+          <div>
+            <div class="text-xs font-bold text-slate-800 group-hover:text-brand-700">IPW Guidelines for the Farm (Wine Grape Production)</div>
+            <div class="text-[11px] text-slate-500">16 core criteria • Biodiversity, spray drift, IPM &amp; withholding periods</div>
+          </div>
+          <span class="text-xs font-bold text-brand-600">Load</span>
+        </button>
+
+        <button onclick="confirmNewAudit('wieta_v5')" class="w-full text-left p-3.5 rounded-2xl border border-cream-300 hover:border-brand-500 hover:bg-brand-50/60 transition-all flex items-center justify-between group">
+          <div>
+            <div class="text-xs font-bold text-slate-800 group-hover:text-brand-700">WIETA Standard Version 5</div>
+            <div class="text-[11px] text-slate-500">16 core criteria • Ethical trade, worker housing, fair pay &amp; OHS</div>
+          </div>
+          <span class="text-xs font-bold text-brand-600">Load</span>
+        </button>
+
+        <button onclick="confirmNewAudit('sa_ohs')" class="w-full text-left p-3.5 rounded-2xl border border-cream-300 hover:border-brand-500 hover:bg-brand-50/60 transition-all flex items-center justify-between group">
+          <div>
+            <div class="text-xs font-bold text-slate-800 group-hover:text-brand-700">Statutory OHS Act No. 85 of 1993</div>
+            <div class="text-[11px] text-slate-500">16 core criteria • Sec 16.2 appointments, GMR 2 &amp; Health Act 63/1977</div>
+          </div>
+          <span class="text-xs font-bold text-brand-600">Load</span>
+        </button>
+
+        <div class="pt-2 border-t border-cream-200">
+          <button onclick="closeNewAuditModal(); openTemplateBuilderModal();" class="w-full py-2.5 rounded-xl border border-dashed border-advini-gold text-advini-bronze hover:bg-cream-100 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Or Build Custom Template from Scratch</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: INVITE COLLEAGUE -->
+  <div id="modal-invite" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-cream-300 space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="mail-plus" class="w-5 h-5 text-brand-600"></i>
+          <h3 class="text-base font-bold text-slate-900">Invite Safety Officer / Manager</h3>
+        </div>
+        <button onclick="closeInviteModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <p class="text-xs text-slate-500">Provide their estate email address and assign an inspection clearance level:</p>
+      
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Colleague Full Name</label>
+          <input type="text" id="invite-input-name" placeholder="e.g., Johan De Villiers" class="w-full text-xs p-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+          <input type="email" id="invite-input-email" placeholder="johan@advini.co.za" class="w-full text-xs p-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Clearance Role</label>
+          <select id="invite-input-role" class="w-full text-xs p-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            <option value="Lead Auditor">Lead Auditor (Full Edit &amp; Sign-off)</option>
+            <option value="Safety Officer">Safety Officer (Inspect &amp; Annotate)</option>
+            <option value="Cellar / Farm Manager">Cellar / Farm Manager (Review &amp; Sign)</option>
+            <option value="Observer">Observer (Read-Only Dossiers)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pt-3 flex items-center justify-end gap-2">
+        <button onclick="closeInviteModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-cream-200">Cancel</button>
+        <button onclick="submitInvitation()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs shadow-sm">Send Invite Link</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: TELEMETRY & STORAGE DIAGNOSTICS -->
+  <div id="modal-telemetry" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-cream-300 space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="cpu" class="w-5 h-5 text-brand-600"></i>
+          <h3 class="text-base font-bold text-slate-900">In-Field Hardware Telemetry</h3>
+        </div>
+        <button onclick="closeTelemetryModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div class="flex justify-between py-2 border-b border-cream-200">
+          <span class="text-slate-500">Network State:</span>
+          <span id="telemetry-online-state" class="font-bold text-emerald-600">Online (Connected)</span>
+        </div>
+        <div class="flex justify-between py-2 border-b border-cream-200">
+          <span class="text-slate-500">IndexedDB Storage:</span>
+          <span id="telemetry-storage-state" class="font-bold text-slate-800">Calculating...</span>
+        </div>
+        <div class="flex justify-between py-2 border-b border-cream-200">
+          <span class="text-slate-500">Device Battery Level:</span>
+          <span id="telemetry-battery-state" class="font-bold text-slate-800">Checking hardware...</span>
+        </div>
+        <div class="flex justify-between py-2">
+          <span class="text-slate-500">App Version:</span>
+          <span class="font-bold text-slate-800">v5.2 Production (Standalone)</span>
+        </div>
+      </div>
+      <button onclick="closeTelemetryModal()" class="w-full py-2 rounded-xl bg-cream-200 hover:bg-cream-300 text-slate-800 font-semibold text-xs">Close</button>
+    </div>
+  </div>
+
+  <!-- Floating Toast Notifications -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    /* =========================================================================
+       1. DATA STRUCTURES & BUILT-IN AUDIT CHECKLISTS
+       ========================================================================= */
+
+    // Template 1: IPW Guidelines for the Farm (Wine Grape Production)
+    const TEMPLATE_IPW_FARM = {
+      id: 'ipw_farm',
+      title: 'IPW Guidelines for the Farm (Wine Grape Production)',
+      standard: 'Integrated Production of Wine (IPW) 2026',
+      area: 'Vineyards & Farm Outbuildings',
+      desc: 'Annual evaluation covering soil conservation, canopy management, IPM, agrochemical records, spray calibration, and water safety.',
+      items: [
+        {
+          id: 'IPW-01',
+          category: 'Conservation & Soil',
+          title: 'Conservation, Alien Eradication & Watercourses',
+          guideline: 'Documented eradication of invasive alien plants (CARA/NEMBA) along riverbanks, wetlands, and mountain catchments. Protection of endemic fynbos corridors.'
+        },
+        {
+          id: 'IPW-02',
+          category: 'Conservation & Soil',
+          title: 'Soil Management, Cover Crops & Erosion Abatement',
+          guideline: 'Minimum tillage practiced. Permanent or winter cover crops planted to curb erosion, improve water infiltration, and suppress weed germination.'
+        },
+        {
+          id: 'IPW-03',
+          category: 'Nutrition & Irrigation',
+          title: 'Vineyard Nutrition & Scientific Nitrogen Thresholds',
+          guideline: 'Annual soil and petiole chemical analyses. Nitrogen fertilizer application does not exceed scientific recommendations for soil type and crop load.'
+        },
+        {
+          id: 'IPW-04',
+          category: 'Nutrition & Irrigation',
+          title: 'Irrigation Scheduling & Water Quality Testing',
+          guideline: 'Continuous scheduling via soil moisture probes (neutron, capacitance, or tensiometers). Annual microbiological and chemical testing of irrigation water.'
+        },
+        {
+          id: 'IPW-05',
+          category: 'Vineyard Canopy & IPM',
+          title: 'Canopy Management & Sunlight Penetration',
+          guideline: 'Timely shoot positioning, suckering, and leaf removal in the bunch zone to reduce disease pressure (powdery and downy mildew) and improve spray penetration.'
+        },
+        {
+          id: 'IPW-06',
+          category: 'Vineyard Canopy & IPM',
+          title: 'Documented Integrated Pest Management (IPM) Scouting',
+          guideline: 'Weekly vineyard scouting records documenting presence of mealybug, snoutbeetle, and red spider mite prior to chemical intervention decisions.'
+        },
+        {
+          id: 'IPW-07',
+          category: 'Vineyard Canopy & IPM',
+          title: 'Biological Control & Pheromone Mating Disruption',
+          guideline: 'Documented use of pheromone dispensers (e.g., CheckMate) or predatory natural enemies to suppress vineyard mealybug populations sustainably.'
+        },
+        {
+          id: 'IPW-08',
+          category: 'Agrochemical Stewardship',
+          title: 'Approved IPW Active Ingredients (Green / Yellow List)',
+          guideline: 'Strict compliance with registered active ingredients. No unregistered, restricted, or Red List agricultural remedies used in wine grape production.'
+        },
+        {
+          id: 'IPW-09',
+          category: 'Agrochemical Stewardship',
+          title: 'Pre-Harvest Withholding Periods (PHI) & MRL Compliance',
+          guideline: 'Statutory withholding intervals between last spray application and harvest dates are strictly adhered to for all international export markets.'
+        },
+        {
+          id: 'IPW-10',
+          category: 'Agrochemical Stewardship',
+          title: 'Sprayer Calibration & Pattern Testing',
+          guideline: 'Documented volumetric calibration of mist blowers and tractor spray rigs before season start, with pressure nozzle checks and flow meter validation.'
+        },
+        {
+          id: 'IPW-11',
+          category: 'Chemical Store & Waste',
+          title: 'Agrochemical Storage, Bunding (110%) & Ventilation',
+          guideline: 'Dedicated lockable chemical store with 110% bunded floor capacity, cross-ventilation, warning signage, and up-to-date Safety Data Sheets (SDS).'
+        },
+        {
+          id: 'IPW-12',
+          category: 'Chemical Store & Waste',
+          title: 'Empty Container Triple-Rinsing & Certified Recycling',
+          guideline: 'Mandatory triple-rinsing protocol for empty pesticide containers, puncturing of container bases, and proof of collection by accredited recycling handlers.'
+        },
+        {
+          id: 'IPW-13',
+          category: 'Operator Health & Safety',
+          title: 'Sprayer Operator Training, PPE & Medical Surveillance',
+          guideline: 'Documented AVCASA certification for chemical handlers. Full nitrile suits, respirators, and baseline and annual cholinesterase blood tests.'
+        },
+        {
+          id: 'IPW-14',
+          category: 'Chemical Store & Waste',
+          title: 'Fuel Bunding, Used Engine Oil & Workshop Waste',
+          guideline: 'Diesel storage tanks bunded to 110% capacity. Used motor oil collected in drums and collected by registered ROSE Foundation recyclers.'
+        },
+        {
+          id: 'IPW-15',
+          category: 'Traceability & Records',
+          title: 'Block-by-Block Spray Application Records (5-Year Archival)',
+          guideline: 'Comprehensive digital or paper spray register listing date, vineyard block, target pest, chemical trade name, dosage, and operator name.'
+        },
+        {
+          id: 'IPW-16',
+          category: 'Traceability & Records',
+          title: 'Annual IPW Self-Evaluation Scorecard & WSB Registration',
+          guideline: 'Completed annual IPW scorecard submitted to Wine and Spirit Board (WSB) inspectorate prior to annual vintage grape intake.'
+        }
+      ]
+    };
+
+    // Template 2: WIETA Standard Version 5
+    const TEMPLATE_WIETA_V5 = {
+      id: 'wieta_v5',
+      title: 'WIETA Standard Version 5 (Ethical & Social Audit)',
+      standard: 'WIETA Ethical Trade Standard V5',
+      area: 'Cellar, Bottling Plant & Vineyard Teams',
+      desc: 'Social, human rights, fair labour conditions, and workplace health and safety compliance for the South African wine sector.',
+      items: [
+        {
+          id: 'W5-01',
+          category: 'Governance & Systems',
+          title: 'Human Rights Due Diligence & Ethical Policy',
+          guideline: 'Signed, visible management commitment to WIETA principles, regular internal grievance auditing, and formal human rights due diligence protocols.'
+        },
+        {
+          id: 'W5-02',
+          category: 'Employment Terms',
+          title: 'Prohibition of Child Labour & Youth Worker Safeguards',
+          guideline: 'Zero tolerance for child labour under 15 years. Documented age verification records for all casual and harvest seasonal workers.'
+        },
+        {
+          id: 'W5-03',
+          category: 'Employment Terms',
+          title: 'Freely Chosen Employment & Labour Broker Oversight',
+          guideline: 'No forced, bonded, or prison labour. Written contracts for all workers; strict compliance audits for third-party Temporary Employment Services (TES).'
+        },
+        {
+          id: 'W5-04',
+          category: 'Worker Welfare & Voice',
+          title: 'Freedom of Association & Worker Committee Representation',
+          guideline: 'Workers free to form/join trade unions. Functional, democratically elected worker representation committee holding regular management meetings.'
+        },
+        {
+          id: 'W5-05',
+          category: 'Worker Welfare & Voice',
+          title: 'Non-Discrimination, Equal Pay & Anti-Harassment Protocols',
+          guideline: 'Equal remuneration for work of equal value without gender/racial bias. Zero tolerance for sexual, verbal, or physical workplace harassment.'
+        },
+        {
+          id: 'W5-06',
+          category: 'Employment Terms',
+          title: 'Fair Disciplinary Procedures & Accessible Grievance Channels',
+          guideline: 'Written disciplinary code aligned with Schedule 8 of LRA. Confidential grievance reporting box and whistle-blower protections.'
+        },
+        {
+          id: 'W5-07',
+          category: 'Working Hours & Wages',
+          title: 'Working Hours, Overtime Caps & Harvest Fatigue Management',
+          guideline: 'Ordinary hours capped at 45 hrs/week. Overtime voluntary, capped at 10 hrs/week, and compensated at statutory premium rates (1.5x).'
+        },
+        {
+          id: 'W5-08',
+          category: 'Working Hours & Wages',
+          title: 'Statutory Minimum Wages & Itemized Payslips',
+          guideline: 'Wages meet or exceed the National Minimum Wage. Mandatory itemized payslips detailing hours, rate, and lawful deductions (UIF).'
+        },
+        {
+          id: 'W5-09',
+          category: 'Occupational Health & Safety',
+          title: 'OHS Policy, Health & Safety Reps & Committee Meetings',
+          guideline: 'Documented health & safety policy. Certified H&S representatives (Sec 17) and regular quarterly safety committee meetings (Sec 19).'
+        },
+        {
+          id: 'W5-10',
+          category: 'Occupational Health & Safety',
+          title: 'Agrochemical Storage, PPE & Worker Safety Training',
+          guideline: 'Compliant chemical store, eyewash station, certified PPE provided free of charge, and training on safe chemical handling.'
+        },
+        {
+          id: 'W5-11',
+          category: 'Occupational Health & Safety',
+          title: 'Machinery Guarding, Lockout-Tagout & Tank Entry Rules',
+          guideline: 'Unguarded rotating shafts and bottling conveyor belts protected. Documented Confined Space Entry permit procedure for wine fermentation tanks.'
+        },
+        {
+          id: 'W5-12',
+          category: 'Occupational Health & Safety',
+          title: 'Fire Fighting Equipment, Hydrants & Evacuation Drills',
+          guideline: 'Serviced fire extinguishers with valid annual tags. Unobstructed emergency exit routes and annual recorded fire evacuation drills.'
+        },
+        {
+          id: 'W5-13',
+          category: 'Transport & Field Safety',
+          title: 'Safe Worker Transport Protocols',
+          guideline: 'Vehicles used for transporting vineyard workers must have roadworthy certificates, fixed enclosed seating, and valid Professional Driving Permits (PrDP).'
+        },
+        {
+          id: 'W5-14',
+          category: 'Housing & Sanitation',
+          title: 'Clean Ablution Facilities & Potable Drinking Water',
+          guideline: 'Clean, segregated flush or chemical toilets in vineyards and cellars with soap, toilet paper, and readily accessible cool drinking water.'
+        },
+        {
+          id: 'W5-15',
+          category: 'Housing & Sanitation',
+          title: 'On-Farm Worker Housing Standards & Maintenance',
+          guideline: 'Habitable housing with water-tight roofs, electricity, clean water, adequate ventilation, and privacy. No hazardous asbestos decay.'
+        },
+        {
+          id: 'W5-16',
+          category: 'Housing & Sanitation',
+          title: 'Security of Tenure & ESTA Compliance',
+          guideline: 'Compliance with Extension of Security of Tenure Act (ESTA). No unlawful evictions, intimidation, or arbitrary utility disconnections.'
+        }
+      ]
+    };
+
+    // Template 3: Statutory OHS Act 85/1993 & Health Act 63/1977
+    const TEMPLATE_SA_OHS = {
+      id: 'sa_ohs',
+      title: 'Statutory OHS Act No. 85 of 1993 & Health Act',
+      standard: 'OHS Act 85/1993 & Health Act 63/1977',
+      area: 'Cellar, Bottling, Engineering Workshops & Logistics',
+      desc: 'Mandatory South African occupational health and safety statutory audit covering legal appointments, machinery, and facilities regulations.',
+      items: [
+        {
+          id: 'OHS-01',
+          category: 'Statutory Appointments',
+          title: 'Section 16(2) Operational Legal Responsibility Assignment',
+          guideline: 'Written, signed appointment letters delegating operational safety duties from CEO (16.1) to plant, warehouse, or cellar managers.'
+        },
+        {
+          id: 'OHS-02',
+          category: 'Statutory Appointments',
+          title: 'Health and Safety Representatives (Sec 17/18)',
+          guideline: 'Designated H&S Representatives for every 50 workers, possessing valid training certificates and conducting documented monthly walkabouts.'
+        },
+        {
+          id: 'OHS-03',
+          category: 'Statutory Appointments',
+          title: 'Health and Safety Committee Records (Sec 19)',
+          guideline: 'Quarterly statutory safety committee meetings held, with signed minutes, action item tracking, and Section 24 incident reviews.'
+        },
+        {
+          id: 'OHS-04',
+          category: 'Environmental & Facilities',
+          title: 'Sanitary Conveniences & Ablution Ratios (Facilities Reg 2)',
+          guideline: 'Clean, segregated ablutions adhering to ratio requirements with running hot/cold water, liquid soap, and hand drying supplies.'
+        },
+        {
+          id: 'OHS-05',
+          category: 'Environmental & Facilities',
+          title: 'Safe Potable Drinking Water (Health Act 63/1977)',
+          guideline: 'Clean, tested potable drinking water readily available within 100m of all indoor and outdoor work stations.'
+        },
+        {
+          id: 'OHS-06',
+          category: 'Emergency & First Aid',
+          title: 'First Aid Boxes & Certified First Aiders (GSR 3)',
+          guideline: 'Stocked first aid boxes per 50 workers with dressing inventory sheet, and certified Level 1 First Aider readily available on every shift.'
+        },
+        {
+          id: 'OHS-07',
+          category: 'Emergency & First Aid',
+          title: 'Fire Protection & Serviced Extinguishers (GSR 9)',
+          guideline: 'Fire extinguishers serviced annually by SABS-accredited contractors, numbered, unobstructed, with photoluminescent location signs.'
+        },
+        {
+          id: 'OHS-08',
+          category: 'Chemical & Hazchem',
+          title: 'Hazardous Chemical Substances (HCS Regs) & SDS Binder',
+          guideline: 'Comprehensive 16-point Safety Data Sheets (SDS) readily accessible for all cleaning acids, caustics, and agricultural chemicals.'
+        },
+        {
+          id: 'OHS-09',
+          category: 'Chemical & Hazchem',
+          title: 'Chemical Storage Bunding (110%) & Eye Wash Stations',
+          guideline: 'Primary containment bunded to 110% of largest tank volume. Emergency eye-wash station within 10 seconds of chemical transfer points.'
+        },
+        {
+          id: 'OHS-10',
+          category: 'Machinery & Electrical',
+          title: 'Machinery Safeguarding & Interlocks (GMR 2)',
+          guideline: 'All rotating shafts, bottling capper star wheels, and conveyor chain sprockets equipped with interlocked physical guards.'
+        },
+        {
+          id: 'OHS-11',
+          category: 'Machinery & Electrical',
+          title: 'Lockout / Tagout (LOTO) & Energy Isolation (GSR 2)',
+          guideline: 'Padlocks and danger tags used during maintenance on crushers, presses, and bottling lines to isolate electrical and pneumatic energy.'
+        },
+        {
+          id: 'OHS-12',
+          category: 'Machinery & Electrical',
+          title: 'Electrical Distribution Boards & SANS 10142 CoC',
+          guideline: 'DB boards locked, danger warning flashes affixed, rubber insulating mats present, and valid Electrical Certificate of Compliance (CoC).'
+        },
+        {
+          id: 'OHS-13',
+          category: 'Machinery & Electrical',
+          title: 'Forklift Inspection & Operator Licensure (DMR 18)',
+          guideline: 'Daily pre-use forklift inspection checklists logged. Drivers hold valid national Code F1/F2 operator licenses.'
+        },
+        {
+          id: 'OHS-14',
+          category: 'Machinery & Electrical',
+          title: 'Confined Space Entry Protocol (GSR 5 - Wine Tanks)',
+          guideline: 'Atmospheric oxygen/gas testing prior to cellar vessel entry, written permit-to-work, external safety observer, and rescue harness.'
+        },
+        {
+          id: 'OHS-15',
+          category: 'PPE & Ergonomics',
+          title: 'Personal Protective Equipment Issuance (GSR 2)',
+          guideline: 'Free provision of steel-toe gumboots, hearing protection in bottling halls, safety eyewear, and respirators with signed issue registers.'
+        },
+        {
+          id: 'OHS-16',
+          category: 'Environmental & Facilities',
+          title: 'Industrial Effluent & Solid Waste Management',
+          guideline: 'Cellar wastewater pH neutralization before municipal discharge or irrigation recycling, with regular organic COD effluent analysis.'
+        }
+      ]
+    };
+
+    /* =========================================================================
+       2. APPLICATION STATE & PERSISTENCE ENGINE (INDEXEDDB)
+       ========================================================================= */
+
+    const APP_STATE = {
+      currentView: 'overview',
+      currentFilter: 'all',
+      activeTemplate: TEMPLATE_IPW_FARM,
+      auditData: {
+        facility: 'Operational Facility / Estate Verification',
+        auditor: 'Lead Compliance Auditor (Cert OHS / IPW)',
+        refNumber: 'ESG-IPW-FARM-2026-001',
+        date: '2026-10-15',
+        status: 'In Progress',
+        answers: {}, // [id]: { status: 'PASS'|'FAIL'|'NA', notes: '', photos: [] }
+        capas: []    // [ { id, itemId, title, severity, assignee, deadline, status } ]
+      },
+      templates: [TEMPLATE_IPW_FARM, TEMPLATE_WIETA_V5, TEMPLATE_SA_OHS],
+      archivedAudits: [],
+      teamMembers: [
+        { id: '1', name: 'Lead Compliance Auditor', email: 'auditor@esgcomply.org', role: 'Lead Auditor', status: 'Active' },
+        { id: '2', name: 'Safety Officer', email: 'safety@esgcomply.org', role: 'Safety Officer', status: 'Active' },
+        { id: '3', name: 'Site / Facility Manager', email: 'operations@esgcomply.org', role: 'Cellar / Farm Manager', status: 'Active' }
+      ],
+      customLogoBase64: null
+    };
+
+    // IndexedDB Helper
+    const DB_NAME = 'ESGComply_IndexedDB_v1';
+    const DB_VERSION = 1;
+    let idb = null;
+
+    function initIndexedDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('active_audit')) {
+            db.createObjectStore('active_audit', { keyPath: 'key' });
+          }
+          if (!db.objectStoreNames.contains('archived_audits')) {
+            db.createObjectStore('archived_audits', { keyPath: 'id' });
+          }
+          if (!db.objectStoreNames.contains('custom_templates')) {
+            db.createObjectStore('custom_templates', { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = (e) => {
+          idb = e.target.result;
+          resolve(idb);
+        };
+        req.onerror = (e) => reject(e);
+      });
+    }
+
+    async function saveStateToIndexedDB() {
+      if (!idb) return;
+      try {
+        const tx = idb.transaction(['active_audit'], 'readwrite');
+        const store = tx.objectStore('active_audit');
+        store.put({
+          key: 'current_audit_session',
+          templateId: APP_STATE.activeTemplate.id,
+          auditData: APP_STATE.auditData,
+          customLogo: APP_STATE.customLogoBase64,
+          timestamp: Date.now()
+        });
+      } catch (err) {
+        console.warn('Could not persist to IndexedDB:', err);
+      }
+    }
+
+    async function loadStateFromIndexedDB() {
+      if (!idb) return;
+      try {
+        const tx = idb.transaction(['active_audit', 'custom_templates', 'archived_audits'], 'readonly');
+        
+        // Load custom templates
+        const tmplReq = tx.objectStore('custom_templates').getAll();
+        tmplReq.onsuccess = () => {
+          if (tmplReq.result && tmplReq.result.length > 0) {
+            tmplReq.result.forEach(t => {
+              if (!APP_STATE.templates.some(ex => ex.id === t.id)) {
+                APP_STATE.templates.push(t);
+              }
+            });
+          }
+          renderTemplatesList();
+        };
+
+        // Load archives
+        const arcReq = tx.objectStore('archived_audits').getAll();
+        arcReq.onsuccess = () => {
+          if (arcReq.result && arcReq.result.length > 0) {
+            APP_STATE.archivedAudits = arcReq.result;
+            renderArchivedAuditsTable();
+            updateHistoricalTrendChart();
+          }
+        };
+
+        // Load active session
+        const sessReq = tx.objectStore('active_audit').get('current_audit_session');
+        sessReq.onsuccess = () => {
+          if (sessReq.result) {
+            const data = sessReq.result;
+            if (data.customLogo) {
+              APP_STATE.customLogoBase64 = data.customLogo;
+              applyLogoToUI(data.customLogo);
+            }
+            const foundTmpl = APP_STATE.templates.find(t => t.id === data.templateId);
+            if (foundTmpl) {
+              APP_STATE.activeTemplate = foundTmpl;
+            }
+            if (data.auditData) {
+              APP_STATE.auditData = data.auditData;
+            }
+          }
+          refreshAllUI();
+        };
+      } catch (err) {
+        console.warn('Error reading from IndexedDB:', err);
+        refreshAllUI();
+      }
+    }
+
+    /* =========================================================================
+       3. NAVIGATION & VIEW SWITCHING
+       ========================================================================= */
+
+    function switchView(viewName) {
+      APP_STATE.currentView = viewName;
+      document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
+      const activePanel = document.getElementById(`view-${viewName}`);
+      if (activePanel) activePanel.classList.remove('hidden');
+
+      // Update Nav buttons styling
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-brand-700', 'shadow-sm', 'border', 'border-brand-200');
+        btn.classList.add('text-slate-600');
+      });
+      const activeNav = document.getElementById(`nav-btn-${viewName}`);
+      if (activeNav) {
+        activeNav.classList.remove('text-slate-600');
+        activeNav.classList.add('bg-white', 'text-brand-700', 'shadow-sm', 'border', 'border-brand-200');
+      }
+
+      // Sync views
+      if (viewName === 'overview') updateOverviewDashboard();
+      if (viewName === 'audit') renderChecklist();
+      if (viewName === 'capa') renderCapaView();
+      if (viewName === 'history') updateHistoricalTrendChart();
+      if (viewName === 'report') renderReportDossier();
+      if (viewName === 'admin') renderTemplatesList();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function switchAdminTab(tabName) {
+      ['templates', 'team', 'config'].forEach(t => {
+        const btn = document.getElementById(`admin-subtab-${t}`);
+        const content = document.getElementById(`admin-content-${t}`);
+        if (t === tabName) {
+          btn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-white text-brand-700 shadow-sm border border-brand-200';
+          content.classList.remove('hidden');
+        } else {
+          btn.className = 'px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-cream-100';
+          content.classList.add('hidden');
+        }
+      });
+      if (tabName === 'templates') renderTemplatesList();
+      if (tabName === 'team') renderTeamRoster();
+    }
+
+    /* =========================================================================
+       4. CHECKLIST AUDIT ENGINE
+       ========================================================================= */
+
+    function setAuditFilter(filter) {
+      APP_STATE.currentFilter = filter;
+      ['all', 'pending', 'pass', 'fail', 'na'].forEach(f => {
+        const btn = document.getElementById(`filter-btn-${f}`);
+        if (!btn) return;
+        if (f === filter) {
+          btn.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-sm';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-cream-100 text-slate-700 hover:bg-cream-200';
+        }
+      });
+      renderChecklist();
+    }
+
+    function renderChecklist() {
+      const container = document.getElementById('checklist-container');
+      const catFilter = document.getElementById('select-category-filter').value;
+      container.innerHTML = '';
+
+      const items = APP_STATE.activeTemplate.items || [];
+      const answers = APP_STATE.auditData.answers;
+
+      let filtered = items.filter(item => {
+        const ans = answers[item.id] || { status: 'PENDING' };
+        if (catFilter !== 'ALL' && item.category !== catFilter) return false;
+        if (APP_STATE.currentFilter === 'pending') return ans.status === 'PENDING' || !ans.status;
+        if (APP_STATE.currentFilter === 'pass') return ans.status === 'PASS';
+        if (APP_STATE.currentFilter === 'fail') return ans.status === 'FAIL';
+        if (APP_STATE.currentFilter === 'na') return ans.status === 'NA';
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl p-12 text-center border border-cream-300">
+            <i data-lucide="check-check" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
+            <h4 class="text-sm font-bold text-slate-700">No Checkpoints Match Filter</h4>
+            <p class="text-xs text-slate-400 mt-1">Try switching your category or status filter above.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      filtered.forEach(item => {
+        const ans = answers[item.id] || { status: 'PENDING', notes: '', photos: [] };
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-2xl p-5 border transition-all ${
+          ans.status === 'FAIL' ? 'border-red-300 bg-red-50/20' : 
+          ans.status === 'PASS' ? 'border-emerald-200' : 
+          ans.status === 'NA' ? 'border-slate-200' : 'border-cream-300'
+        } shadow-sm space-y-4`;
+
+        card.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-cream-100 text-slate-700 border border-cream-300">${item.id}</span>
+                <span class="text-xs font-semibold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full">${item.category}</span>
+              </div>
+              <h3 class="text-sm font-bold text-slate-900">${item.title}</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">${item.guideline}</p>
+            </div>
+
+            <!-- Grade Action Buttons -->
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <button onclick="gradeItem('${item.id}', 'PASS')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                ans.status === 'PASS' 
+                  ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-300' 
+                  : 'bg-cream-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700'
+              }">Pass</button>
+              <button onclick="gradeItem('${item.id}', 'FAIL')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                ans.status === 'FAIL' 
+                  ? 'bg-red-600 text-white shadow-sm ring-2 ring-red-300' 
+                  : 'bg-cream-100 hover:bg-red-50 text-slate-700 hover:text-red-700'
+              }">Fail</button>
+              <button onclick="gradeItem('${item.id}', 'NA')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                ans.status === 'NA' 
+                  ? 'bg-slate-700 text-white shadow-sm' 
+                  : 'bg-cream-100 hover:bg-slate-200 text-slate-600'
+              }">N/A</button>
+            </div>
+          </div>
+
+          <!-- Inspector Notes & Camera Trigger -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-cream-200">
+            <div class="sm:col-span-2">
+              <input type="text" placeholder="Auditor findings, evidence references, or remarks..." 
+                value="${ans.notes || ''}" 
+                onchange="updateItemNotes('${item.id}', this.value)"
+                class="w-full text-xs p-2 rounded-xl border border-cream-300 bg-cream-50 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            
+            <div class="flex items-center justify-end gap-2">
+              <button onclick="openMarkupStudio('${item.id}')" class="w-full sm:w-auto px-3 py-2 rounded-xl text-xs font-semibold bg-cream-100 hover:bg-brand-50 text-slate-700 hover:text-brand-700 border border-cream-300 flex items-center justify-center gap-1.5 transition-colors">
+                <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                <span>Snap &amp; Annotate</span>
+                ${ans.photos && ans.photos.length > 0 ? `<span class="px-1.5 py-0.2 bg-brand-600 text-white text-[10px] rounded-full">${ans.photos.length}</span>` : ''}
+              </button>
+            </div>
+          </div>
+
+          <!-- Photo Previews (if any) -->
+          ${ans.photos && ans.photos.length > 0 ? `
+            <div class="flex flex-wrap gap-2 pt-2">
+              ${ans.photos.map((p, idx) => `
+                <div class="relative group w-16 h-16 rounded-xl border border-cream-300 overflow-hidden shadow-sm">
+                  <img src="${p}" class="w-full h-full object-cover">
+                  <button onclick="removePhotoFromItem('${item.id}', ${idx})" class="absolute top-1 right-1 p-0.5 rounded-full bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i data-lucide="x" class="w-3 h-3"></i>
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        `;
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
+      updateMetrics();
+    }
+
+    function gradeItem(itemId, status) {
+      if (!APP_STATE.auditData.answers[itemId]) {
+        APP_STATE.auditData.answers[itemId] = { status: 'PENDING', notes: '', photos: [] };
+      }
+      APP_STATE.auditData.answers[itemId].status = status;
+
+      // Automatic CAPA logic on FAIL
+      if (status === 'FAIL') {
+        const item = APP_STATE.activeTemplate.items.find(i => i.id === itemId);
+        const existingCapa = APP_STATE.auditData.capas.find(c => c.itemId === itemId);
+        if (!existingCapa) {
+          APP_STATE.auditData.capas.push({
+            id: 'CAPA-' + Date.now().toString().slice(-4),
+            itemId: itemId,
+            title: item ? item.title : 'Non-Conformance Recorded',
+            category: item ? item.category : 'General',
+            severity: 'High',
+            assignee: 'Safety Officer / Section Manager',
+            deadline: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+            status: 'Open'
+          });
+          showToast(`Non-conformance recorded. CAPA created for ${itemId}`, 'warning');
+        }
+      } else {
+        // If switched to PASS or NA, check if we should resolve CAPA
+        const capa = APP_STATE.auditData.capas.find(c => c.itemId === itemId);
+        if (capa && capa.status === 'Open') {
+          capa.status = 'Resolved';
+        }
+      }
+
+      saveStateToIndexedDB();
+      renderChecklist();
+    }
+
+    function updateItemNotes(itemId, notes) {
+      if (!APP_STATE.auditData.answers[itemId]) {
+        APP_STATE.auditData.answers[itemId] = { status: 'PENDING', notes: '', photos: [] };
+      }
+      APP_STATE.auditData.answers[itemId].notes = notes;
+      saveStateToIndexedDB();
+    }
+
+    function removePhotoFromItem(itemId, photoIndex) {
+      if (APP_STATE.auditData.answers[itemId]?.photos) {
+        APP_STATE.auditData.answers[itemId].photos.splice(photoIndex, 1);
+        saveStateToIndexedDB();
+        renderChecklist();
+      }
+    }
+
+    /* =========================================================================
+       5. MITTI-STYLE IN-FIELD PHOTO MARKUP STUDIO
+       ========================================================================= */
+
+    let markupState = {
+      currentItemId: null,
+      canvas: null,
+      ctx: null,
+      activeTool: 'circle',
+      activeColor: '#ef4444',
+      isDrawing: false,
+      startX: 0,
+      startY: 0,
+      history: [],
+      currentImage: null
+    };
+
+    function openMarkupStudio(itemId) {
+      markupState.currentItemId = itemId;
+      const item = APP_STATE.activeTemplate.items.find(i => i.id === itemId);
+      document.getElementById('markup-item-title').textContent = item ? `${item.id}: ${item.title}` : itemId;
+      
+      const modal = document.getElementById('modal-markup');
+      modal.classList.remove('hidden');
+
+      markupState.canvas = document.getElementById('markup-canvas');
+      markupState.ctx = markupState.canvas.getContext('2d');
+      markupState.history = [];
+
+      // Check if user already took a photo for this item
+      const existing = APP_STATE.auditData.answers[itemId]?.photos;
+      if (existing && existing.length > 0) {
+        loadImageOntoCanvas(existing[existing.length - 1]);
+      } else {
+        // Initialize blank state
+        markupState.canvas.width = 640;
+        markupState.canvas.height = 480;
+        markupState.ctx.fillStyle = '#0f172a';
+        markupState.ctx.fillRect(0, 0, 640, 480);
+        document.getElementById('markup-placeholder').classList.remove('hidden');
+      }
+
+      initMarkupCanvasEvents();
+      lucide.createIcons();
+    }
+
+    function closeMarkupModal() {
+      document.getElementById('modal-markup').classList.add('hidden');
+    }
+
+    function handleMarkupPhotoLoad(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        loadImageOntoCanvas(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function loadImageOntoCanvas(dataUrl) {
+      const img = new Image();
+      img.onload = () => {
+        markupState.currentImage = img;
+        document.getElementById('markup-placeholder').classList.add('hidden');
+        
+        // Scale to reasonable bounds
+        const maxDim = 800;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        markupState.canvas.width = w;
+        markupState.canvas.height = h;
+        markupState.ctx.drawImage(img, 0, 0, w, h);
+        saveMarkupHistory();
+      };
+      img.src = dataUrl;
+    }
+
+    function initMarkupCanvasEvents() {
+      const c = markupState.canvas;
+      c.onmousedown = (e) => startMarkupDraw(getCanvasCoords(e));
+      c.onmousemove = (e) => continueMarkupDraw(getCanvasCoords(e));
+      c.onmouseup = () => endMarkupDraw();
+
+      c.ontouchstart = (e) => {
+        e.preventDefault();
+        startMarkupDraw(getTouchCoords(e));
+      };
+      c.ontouchmove = (e) => {
+        e.preventDefault();
+        continueMarkupDraw(getTouchCoords(e));
+      };
+      c.ontouchend = (e) => {
+        e.preventDefault();
+        endMarkupDraw();
+      };
+    }
+
+    function getCanvasCoords(e) {
+      const rect = markupState.canvas.getBoundingClientRect();
+      const scaleX = markupState.canvas.width / rect.width;
+      const scaleY = markupState.canvas.height / rect.height;
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      };
+    }
+
+    function getTouchCoords(e) {
+      const rect = markupState.canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      const scaleX = markupState.canvas.width / rect.width;
+      const scaleY = markupState.canvas.height / rect.height;
+      return {
+        x: (touch.clientX - rect.left) * scaleX,
+        y: (touch.clientY - rect.top) * scaleY
+      };
+    }
+
+    function saveMarkupHistory() {
+      markupState.history.push(markupState.ctx.getImageData(0, 0, markupState.canvas.width, markupState.canvas.height));
+      if (markupState.history.length > 10) markupState.history.shift();
+    }
+
+    function undoMarkupAction() {
+      if (markupState.history.length > 1) {
+        markupState.history.pop();
+        const prev = markupState.history[markupState.history.length - 1];
+        markupState.ctx.putImageData(prev, 0, 0);
+      }
+    }
+
+    function setMarkupTool(tool) {
+      markupState.activeTool = tool;
+      document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('bg-brand-600', 'text-white'));
+      const active = document.getElementById(`tool-${tool}`);
+      if (active) active.classList.add('bg-brand-600', 'text-white');
+    }
+
+    function setMarkupColor(col) {
+      markupState.activeColor = col;
+    }
+
+    function startMarkupDraw(coords) {
+      markupState.isDrawing = true;
+      markupState.startX = coords.x;
+      markupState.startY = coords.y;
+
+      if (markupState.activeTool === 'draw') {
+        markupState.ctx.beginPath();
+        markupState.ctx.moveTo(coords.x, coords.y);
+      }
+    }
+
+    function continueMarkupDraw(coords) {
+      if (!markupState.isDrawing) return;
+      const ctx = markupState.ctx;
+      
+      if (markupState.activeTool === 'draw') {
+        ctx.strokeStyle = markupState.activeColor;
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.lineTo(coords.x, coords.y);
+        ctx.stroke();
+      }
+    }
+
+    function endMarkupDraw() {
+      if (!markupState.isDrawing) return;
+      markupState.isDrawing = false;
+      const ctx = markupState.ctx;
+      const x1 = markupState.startX;
+      const y1 = markupState.startY;
+      const last = markupState.history[markupState.history.length - 1];
+
+      ctx.strokeStyle = markupState.activeColor;
+      ctx.lineWidth = 4;
+
+      if (markupState.activeTool === 'circle') {
+        const radius = Math.sqrt(Math.pow(lastX - x1, 2) + Math.pow(lastY - y1, 2)) / 2;
+        ctx.beginPath();
+        ctx.arc((x1 + lastX) / 2, (y1 + lastY) / 2, Math.max(15, radius), 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (markupState.activeTool === 'arrow') {
+        drawDirectionalArrow(ctx, x1, y1, lastX, lastY, markupState.activeColor);
+      } else if (markupState.activeTool === 'rect') {
+        ctx.strokeRect(x1, y1, lastX - x1, lastY - y1);
+      } else if (markupState.activeTool === 'text') {
+        ctx.fillStyle = markupState.activeColor;
+        ctx.font = 'bold 20px Inter, sans-serif';
+        ctx.fillText('NON-COMPLIANCE HAZARD', x1, y1);
+      }
+
+      saveMarkupHistory();
+    }
+
+    let lastX = 0, lastY = 0;
+    // Capture tracking for shape sizing
+    window.addEventListener('mousemove', (e) => {
+      if (markupState.canvas && markupState.isDrawing) {
+        const c = getCanvasCoords(e);
+        lastX = c.x;
+        lastY = c.y;
+      }
+    });
+
+    function drawDirectionalArrow(ctx, fromx, fromy, tox, toy, color) {
+      const headlen = 16;
+      const angle = Math.atan2(toy - fromy, tox - fromx);
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 5;
+
+      ctx.beginPath();
+      ctx.moveTo(fromx, fromy);
+      ctx.lineTo(tox, toy);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(tox, toy);
+      ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function burnWatermarkAndSaveMarkup() {
+      const c = markupState.canvas;
+      const ctx = markupState.ctx;
+      const w = c.width;
+      const h = c.height;
+
+      // Burn bottom statutory banner
+      const bannerH = 46;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.fillRect(0, h - bannerH, w, bannerH);
+
+      // Add text details
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px Inter, sans-serif';
+      ctx.fillText(`ESG COMPLY • AUDIT EVIDENCE`, 12, h - 26);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px Inter, monospace';
+      const timeStr = new Date().toLocaleString('en-ZA');
+      ctx.fillText(`SITE: ${APP_STATE.auditData.facility} | ITEM: ${markupState.currentItemId} | ${timeStr}`, 12, h - 10);
+
+      // Save to Active Item
+      const finalDataUrl = c.toDataURL('image/jpeg', 0.85);
+      const itemId = markupState.currentItemId;
+      if (!APP_STATE.auditData.answers[itemId]) {
+        APP_STATE.auditData.answers[itemId] = { status: 'PENDING', notes: '', photos: [] };
+      }
+      APP_STATE.auditData.answers[itemId].photos.push(finalDataUrl);
+
+      saveStateToIndexedDB();
+      closeMarkupModal();
+      renderChecklist();
+      showToast('Annotated evidence photo watermarked & attached!', 'success');
+    }
+
+    /* =========================================================================
+       6. CUSTOM TEMPLATE BUILDER STUDIO
+       ========================================================================= */
+
+    function openTemplateBuilderModal() {
+      document.getElementById('modal-template-builder').classList.remove('hidden');
+      document.getElementById('builder-questions-container').innerHTML = '';
+      addQuestionFieldToBuilder();
+      addQuestionFieldToBuilder();
+      lucide.createIcons();
+    }
+
+    function closeTemplateBuilderModal() {
+      document.getElementById('modal-template-builder').classList.add('hidden');
+    }
+
+    function addQuestionFieldToBuilder(cat = '', title = '', guide = '') {
+      const container = document.getElementById('builder-questions-container');
+      const idx = container.children.length + 1;
+      const row = document.createElement('div');
+      row.className = 'p-3 rounded-xl border border-cream-300 bg-cream-50/50 space-y-2';
+      row.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold font-mono text-brand-700">Item #${idx}</span>
+          <button onclick="this.closest('.p-3').remove()" class="text-red-500 hover:text-red-700 text-xs flex items-center gap-1">
+            <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+            <span>Remove</span>
+          </button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div>
+            <input type="text" placeholder="Module / Category" value="${cat}" class="builder-q-cat w-full text-xs p-2 rounded-lg border border-cream-300 bg-white">
+          </div>
+          <div class="sm:col-span-2">
+            <input type="text" placeholder="Question Title (e.g., Forklift Daily Pre-Use Check)" value="${title}" class="builder-q-title w-full text-xs p-2 rounded-lg border border-cream-300 bg-white">
+          </div>
+        </div>
+        <textarea rows="1" placeholder="Inspector verification guidance & statutory references..." class="builder-q-guide w-full text-xs p-2 rounded-lg border border-cream-300 bg-white">${guide}</textarea>
+      `;
+      container.appendChild(row);
+      lucide.createIcons();
+    }
+
+    async function saveCustomTemplate() {
+      const title = document.getElementById('builder-template-title').value.trim();
+      const standard = document.getElementById('builder-template-standard').value.trim() || 'Custom Standard';
+      const area = document.getElementById('builder-template-area').value.trim() || 'General Operations';
+      const desc = document.getElementById('builder-template-desc').value.trim() || 'Custom checklist framework.';
+      const loadNow = document.getElementById('builder-load-immediately').checked;
+
+      if (!title) {
+        showToast('Please enter a template title', 'warning');
+        return;
+      }
+
+      const rows = document.querySelectorAll('#builder-questions-container > div');
+      const items = [];
+      rows.forEach((r, idx) => {
+        const cat = r.querySelector('.builder-q-cat').value.trim() || 'General';
+        const qTitle = r.querySelector('.builder-q-title').value.trim() || `Inspection Point ${idx + 1}`;
+        const guide = r.querySelector('.builder-q-guide').value.trim() || 'Verify physical compliance on site.';
+        items.push({
+          id: `CUST-${String(idx + 1).padStart(2, '0')}`,
+          category: cat,
+          title: qTitle,
+          guideline: guide
+        });
+      });
+
+      if (items.length === 0) {
+        showToast('Please add at least one question item', 'warning');
+        return;
+      }
+
+      const newTmpl = {
+        id: 'cust_' + Date.now(),
+        title: title,
+        standard: standard,
+        area: area,
+        desc: desc,
+        items: items
+      };
+
+      APP_STATE.templates.push(newTmpl);
+
+      // Save to IndexedDB
+      if (idb) {
+        const tx = idb.transaction(['custom_templates'], 'readwrite');
+        tx.objectStore('custom_templates').put(newTmpl);
+      }
+
+      closeTemplateBuilderModal();
+      renderTemplatesList();
+      showToast(`Custom Template "${title}" successfully registered!`, 'success');
+
+      if (loadNow) {
+        loadPredefinedTemplate(newTmpl.id);
+        switchView('audit');
+      }
+    }
+
+    /* =========================================================================
+       7. TEMPLATE SELECTION & ARCHIVAL WORKFLOW
+       ========================================================================= */
+
+    function loadPredefinedTemplate(templateId) {
+      const tmpl = APP_STATE.templates.find(t => t.id === templateId);
+      if (!tmpl) return;
+
+      APP_STATE.activeTemplate = tmpl;
+      APP_STATE.auditData.refNumber = `ESG-${tmpl.id.toUpperCase()}-2026-${Math.floor(Math.random() * 899 + 100)}`;
+      APP_STATE.auditData.answers = {};
+      APP_STATE.auditData.capas = [];
+      APP_STATE.auditData.status = 'In Progress';
+
+      saveStateToIndexedDB();
+      refreshAllUI();
+      showToast(`Loaded ${tmpl.title}`, 'info');
+    }
+
+    function openNewAuditModal() {
+      document.getElementById('modal-new-audit').classList.remove('hidden');
+    }
+
+    function closeNewAuditModal() {
+      document.getElementById('modal-new-audit').classList.add('hidden');
+    }
+
+    function confirmNewAudit(templateId) {
+      closeNewAuditModal();
+      loadPredefinedTemplate(templateId);
+      switchView('audit');
+    }
+
+    async function archiveCurrentAuditPrompt() {
+      const score = calculateOverallScore();
+      const ref = APP_STATE.auditData.refNumber;
+
+      const archiveRecord = {
+        id: 'ARC-' + Date.now(),
+        refNumber: ref,
+        standard: APP_STATE.activeTemplate.title,
+        facility: APP_STATE.auditData.facility,
+        date: new Date().toISOString().split('T')[0],
+        score: score,
+        data: JSON.parse(JSON.stringify(APP_STATE.auditData))
+      };
+
+      APP_STATE.archivedAudits.unshift(archiveRecord);
+
+      if (idb) {
+        const tx = idb.transaction(['archived_audits'], 'readwrite');
+        tx.objectStore('archived_audits').put(archiveRecord);
+      }
+
+      renderArchivedAuditsTable();
+      updateHistoricalTrendChart();
+      showToast(`Audit ${ref} permanently locked and archived!`, 'success');
+    }
+
+    /* =========================================================================
+       8. METRICS, CHARTS & DASHBOARD
+       ========================================================================= */
+
+    let categoryChartInstance = null;
+    let trendChartInstance = null;
+
+    function calculateOverallScore() {
+      const items = APP_STATE.activeTemplate.items || [];
+      if (items.length === 0) return 0;
+
+      let pass = 0, fail = 0;
+      items.forEach(i => {
+        const s = APP_STATE.auditData.answers[i.id]?.status;
+        if (s === 'PASS') pass++;
+        if (s === 'FAIL') fail++;
+      });
+
+      const totalAudited = pass + fail;
+      if (totalAudited === 0) return 0;
+      return Math.round((pass / totalAudited) * 100);
+    }
+
+    function updateMetrics() {
+      const items = APP_STATE.activeTemplate.items || [];
+      const answers = APP_STATE.auditData.answers;
+
+      let pass = 0, fail = 0, na = 0, pending = 0;
+      items.forEach(i => {
+        const s = answers[i.id]?.status;
+        if (s === 'PASS') pass++;
+        else if (s === 'FAIL') fail++;
+        else if (s === 'NA') na++;
+        else pending++;
+      });
+
+      const total = items.length;
+      const score = calculateOverallScore();
+
+      // Hero Elements
+      document.getElementById('hero-score-value').textContent = `${score}%`;
+      document.getElementById('hero-score-value').className = `text-3xl font-black ${
+        score >= 85 ? 'text-emerald-600' : score >= 60 ? 'text-amber-500' : 'text-red-600'
+      }`;
+
+      // Stat cards
+      document.getElementById('stat-total-checks').textContent = total;
+      document.getElementById('stat-passed-checks').textContent = pass;
+      document.getElementById('stat-failed-checks').textContent = fail;
+      document.getElementById('stat-pending-checks').textContent = pending;
+      document.getElementById('stat-pass-bar').style.width = total > 0 ? `${(pass / total) * 100}%` : '0%';
+
+      // Badges
+      document.getElementById('badge-pending-count').textContent = pending;
+      document.getElementById('badge-capa-count').textContent = APP_STATE.auditData.capas.filter(c => c.status === 'Open').length;
+      document.getElementById('count-all').textContent = total;
+      document.getElementById('count-pending').textContent = pending;
+      document.getElementById('count-passed').textContent = pass;
+      document.getElementById('count-failed').textContent = fail;
+      document.getElementById('count-na').textContent = na;
+
+      // Update Chart
+      updateCategoryComplianceChart();
+    }
+
+    function updateCategoryComplianceChart() {
+      const ctx = document.getElementById('categoryComplianceChart');
+      if (!ctx) return;
+
+      const items = APP_STATE.activeTemplate.items || [];
+      const categories = [...new Set(items.map(i => i.category))];
+      
+      const scores = categories.map(cat => {
+        const catItems = items.filter(i => i.category === cat);
+        let p = 0, f = 0;
+        catItems.forEach(i => {
+          const s = APP_STATE.auditData.answers[i.id]?.status;
+          if (s === 'PASS') p++;
+          if (s === 'FAIL') f++;
+        });
+        const sum = p + f;
+        return sum === 0 ? 0 : Math.round((p / sum) * 100);
+      });
+
+      if (categoryChartInstance) {
+        categoryChartInstance.destroy();
+      }
+
+      categoryChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: categories,
+          datasets: [{
+            label: 'Module Compliance %',
+            data: scores,
+            backgroundColor: scores.map(s => s >= 85 ? '#0284c7' : s >= 60 ? '#f59e0b' : '#ef4444'),
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { callback: v => v + '%' }
+            }
+          }
+        }
+      });
+    }
+
+    function updateHistoricalTrendChart() {
+      const ctx = document.getElementById('historicalTrendChart');
+      if (!ctx) return;
+
+      const archives = [...APP_STATE.archivedAudits].reverse();
+      const labels = archives.map(a => a.date || a.refNumber);
+      const data = archives.map(a => a.score);
+
+      if (labels.length === 0) {
+        labels.push('Initial Baseline');
+        data.push(0);
+      }
+
+      if (trendChartInstance) {
+        trendChartInstance.destroy();
+      }
+
+      trendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Audit Score Trend',
+            data: data,
+            borderColor: '#0284c7',
+            backgroundColor: 'rgba(2, 132, 199, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              min: 0,
+              max: 100,
+              ticks: { callback: v => v + '%' }
+            }
+          }
+        }
+      });
+    }
+
+    /* =========================================================================
+       9. CAPA & REPORT VIEWS
+       ========================================================================= */
+
+    function renderCapaView() {
+      const container = document.getElementById('capa-container');
+      const capas = APP_STATE.auditData.capas || [];
+      const openCapas = capas.filter(c => c.status === 'Open');
+      document.getElementById('capa-open-count').textContent = openCapas.length;
+
+      if (capas.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl p-12 text-center border border-cream-300">
+            <i data-lucide="shield-check" class="w-12 h-12 text-emerald-500 mx-auto mb-3"></i>
+            <h4 class="text-sm font-bold text-slate-800">No Non-Conformances Logged</h4>
+            <p class="text-xs text-slate-500 mt-1">Items graded as 'Fail' automatically spawn actionable corrective remediation cards.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = capas.map(c => `
+        <div class="bg-white rounded-2xl p-5 border ${c.status === 'Open' ? 'border-red-300' : 'border-emerald-200'} shadow-sm space-y-3">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.status === 'Open' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}">${c.status}</span>
+                <span class="text-xs font-semibold text-slate-500 font-mono">${c.id} • ${c.itemId}</span>
+              </div>
+              <h3 class="text-sm font-bold text-slate-900 mt-1">${c.title}</h3>
+            </div>
+            <button onclick="toggleCapaStatus('${c.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold ${c.status === 'Open' ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'}">
+              ${c.status === 'Open' ? 'Mark Resolved' : 'Re-open'}
+            </button>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs pt-2 border-t border-cream-200 text-slate-600">
+            <div><strong>Assignee:</strong> ${c.assignee}</div>
+            <div><strong>Deadline:</strong> ${c.deadline}</div>
+            <div><strong>Severity:</strong> <span class="font-bold text-red-600">${c.severity}</span></div>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function toggleCapaStatus(capaId) {
+      const capa = APP_STATE.auditData.capas.find(c => c.id === capaId);
+      if (capa) {
+        capa.status = capa.status === 'Open' ? 'Resolved' : 'Open';
+        saveStateToIndexedDB();
+        renderCapaView();
+        updateMetrics();
+      }
+    }
+
+    function renderReportDossier() {
+      const score = calculateOverallScore();
+      document.getElementById('dossier-score-value').textContent = `${score}%`;
+      document.getElementById('dossier-site-name').textContent = APP_STATE.auditData.facility;
+      document.getElementById('dossier-standard-name').textContent = APP_STATE.activeTemplate.title;
+      document.getElementById('dossier-lead-auditor').textContent = APP_STATE.auditData.auditor;
+      document.getElementById('dossier-ref-number').textContent = APP_STATE.auditData.refNumber;
+
+      // Render CAPA Summary Table
+      const capaSlot = document.getElementById('dossier-capa-table-slot');
+      const capas = APP_STATE.auditData.capas || [];
+      document.getElementById('dossier-nonconform-summary').textContent = `${capas.filter(c => c.status === 'Open').length} Outstanding Deviations`;
+
+      if (capas.length === 0) {
+        capaSlot.innerHTML = `<p class="text-xs text-slate-500 italic">No non-conformances identified during this inspection cycle.</p>`;
+      } else {
+        capaSlot.innerHTML = capas.map(c => `
+          <div class="p-3 rounded-xl border border-red-200 bg-red-50/30 text-xs flex items-center justify-between">
+            <div>
+              <span class="font-bold text-red-700">${c.itemId}:</span>
+              <span class="font-semibold text-slate-800">${c.title}</span>
+              <div class="text-[11px] text-slate-500">Target: ${c.deadline} | Assigned: ${c.assignee}</div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.status === 'Open' ? 'bg-red-200 text-red-800' : 'bg-emerald-200 text-emerald-800'}">${c.status}</span>
+          </div>
+        `).join('');
+      }
+
+      // Render Full Item Register
+      const tbody = document.getElementById('dossier-register-tbody');
+      tbody.innerHTML = (APP_STATE.activeTemplate.items || []).map(i => {
+        const ans = APP_STATE.auditData.answers[i.id] || { status: 'PENDING', notes: '' };
+        return `
+          <tr class="hover:bg-cream-50/60">
+            <td class="px-3 py-2 font-mono font-bold text-slate-600">${i.id}</td>
+            <td class="px-3 py-2 font-semibold text-slate-700">${i.category}</td>
+            <td class="px-3 py-2 text-slate-800">
+              <div class="font-bold">${i.title}</div>
+              <div class="text-[11px] text-slate-500">${i.guideline}</div>
+            </td>
+            <td class="px-3 py-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+                ans.status === 'PASS' ? 'bg-emerald-100 text-emerald-800' :
+                ans.status === 'FAIL' ? 'bg-red-100 text-red-800' :
+                ans.status === 'NA' ? 'bg-slate-100 text-slate-800' : 'bg-amber-100 text-amber-800'
+              }">${ans.status || 'PENDING'}</span>
+            </td>
+            <td class="px-3 py-2 text-slate-600 italic">${ans.notes || '—'}</td>
+          </tr>
+        `;
+      }).join('');
+
+      initSignaturePads();
+    }
+
+    /* =========================================================================
+       10. SIGNATURE PADS & EXPORTING (PDF & CSV)
+       ========================================================================= */
+
+    let sigPadAuditor = { canvas: null, ctx: null, drawing: false };
+    let sigPadManager = { canvas: null, ctx: null, drawing: false };
+
+    function initSignaturePads() {
+      sigPadAuditor.canvas = document.getElementById('canvas-sig-auditor');
+      sigPadManager.canvas = document.getElementById('canvas-sig-manager');
+
+      [sigPadAuditor, sigPadManager].forEach(pad => {
+        if (!pad.canvas) return;
+        pad.ctx = pad.canvas.getContext('2d');
+        pad.canvas.width = pad.canvas.parentElement.clientWidth;
+        pad.canvas.height = 112;
+
+        pad.canvas.onmousedown = (e) => {
+          pad.drawing = true;
+          pad.ctx.beginPath();
+          pad.ctx.moveTo(e.offsetX, e.offsetY);
+        };
+        pad.canvas.onmousemove = (e) => {
+          if (!pad.drawing) return;
+          pad.ctx.lineWidth = 2;
+          pad.ctx.strokeStyle = '#0f172a';
+          pad.ctx.lineTo(e.offsetX, e.offsetY);
+          pad.ctx.stroke();
+        };
+        pad.canvas.onmouseup = () => pad.drawing = false;
+
+        // Touch handlers
+        pad.canvas.ontouchstart = (e) => {
+          e.preventDefault();
+          pad.drawing = true;
+          const rect = pad.canvas.getBoundingClientRect();
+          const t = e.touches[0];
+          pad.ctx.beginPath();
+          pad.ctx.moveTo(t.clientX - rect.left, t.clientY - rect.top);
+        };
+        pad.canvas.ontouchmove = (e) => {
+          e.preventDefault();
+          if (!pad.drawing) return;
+          const rect = pad.canvas.getBoundingClientRect();
+          const t = e.touches[0];
+          pad.ctx.lineWidth = 2;
+          pad.ctx.strokeStyle = '#0f172a';
+          pad.ctx.lineTo(t.clientX - rect.left, t.clientY - rect.top);
+          pad.ctx.stroke();
+        };
+        pad.canvas.ontouchend = () => pad.drawing = false;
+      });
+    }
+
+    function clearSignature(target) {
+      if (target === 'auditor' && sigPadAuditor.ctx) {
+        sigPadAuditor.ctx.clearRect(0, 0, sigPadAuditor.canvas.width, sigPadAuditor.canvas.height);
+      }
+      if (target === 'manager' && sigPadManager.ctx) {
+        sigPadManager.ctx.clearRect(0, 0, sigPadManager.canvas.width, sigPadManager.canvas.height);
+      }
+    }
+
+    async function downloadPDFReport() {
+      const element = document.getElementById('printable-dossier');
+      showToast('Rendering certified PDF dossier...', 'info');
+
+      try {
+        const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`ESG_Comply_Audit_${APP_STATE.auditData.refNumber}.pdf`);
+        showToast('PDF audit report downloaded!', 'success');
+      } catch (err) {
+        console.error('PDF export failed:', err);
+        showToast('PDF generation failed. Use browser print-to-PDF.', 'warning');
+      }
+    }
+
+    function downloadCSVReport() {
+      const items = APP_STATE.activeTemplate.items || [];
+      const answers = APP_STATE.auditData.answers;
+
+      let csv = 'Item ID,Category,Checkpoint Title,Result,Inspector Notes\n';
+      items.forEach(i => {
+        const ans = answers[i.id] || { status: 'PENDING', notes: '' };
+        csv += `"${i.id}","${i.category}","${i.title.replace(/"/g, '""')}","${ans.status}","${(ans.notes || '').replace(/"/g, '""')}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `ESG_Comply_Audit_${APP_STATE.auditData.refNumber}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('CSV audit findings exported!', 'success');
+    }
+
+    function downloadSelfSourceFile() {
+      const htmlContent = document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'index.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('index.html downloaded successfully!', 'success');
+    }
+
+    /* =========================================================================
+       11. ADMIN PORTAL (TEMPLATES, ROSTER, LOGO & SETTINGS)
+       ========================================================================= */
+
+    function renderTemplatesList() {
+      const grid = document.getElementById('admin-templates-grid');
+      if (!grid) return;
+
+      grid.innerHTML = APP_STATE.templates.map(t => {
+        const isBuiltIn = ['ipw_farm', 'wieta_v5', 'sa_ohs'].includes(t.id);
+        const isActive = t.id === APP_STATE.activeTemplate.id;
+
+        return `
+        <div class="bg-white rounded-2xl p-5 border ${isActive ? 'border-brand-500 ring-2 ring-brand-200' : 'border-cream-300'} shadow-sm flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cream-100 text-slate-700">${t.standard}</span>
+              <div class="flex items-center gap-1.5">
+                ${isActive ? '<span class="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200">Active</span>' : ''}
+                ${!isBuiltIn ? '<span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">Custom</span>' : ''}
+              </div>
+            </div>
+            <h4 class="text-sm font-bold text-slate-900">${t.title}</h4>
+            <p class="text-xs text-slate-500 mt-1 line-clamp-2">${t.desc}</p>
+            <div class="mt-2 text-[11px] text-slate-400 font-medium">Area: <span class="text-slate-600">${t.area || 'All Areas'}</span></div>
+          </div>
+
+          <div class="space-y-2 pt-3 border-t border-cream-200">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-400 font-semibold">${t.items ? t.items.length : 0} Checkpoints</span>
+              <div class="flex items-center gap-1.5">
+                <!-- Edit Template Trigger -->
+                <button onclick="openTemplateBuilderModal('${t.id}')" title="Edit checkpoints & guidance" class="p-1.5 rounded-lg text-slate-600 hover:text-brand-600 hover:bg-cream-100 transition-colors flex items-center gap-1 text-xs font-semibold">
+                  <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                  <span>Edit</span>
+                </button>
+                <!-- Duplicate Trigger -->
+                <button onclick="duplicateExistingTemplate('${t.id}')" title="Clone as custom template" class="p-1.5 rounded-lg text-slate-600 hover:text-brand-600 hover:bg-cream-100 transition-colors flex items-center gap-1 text-xs font-semibold">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  <span>Clone</span>
+                </button>
+                <!-- Delete Custom Template Trigger -->
+                ${!isBuiltIn ? `
+                  <button onclick="deleteCustomTemplate('${t.id}')" title="Delete custom template" class="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors">
+                    <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- Load Button -->
+            <button onclick="loadPredefinedTemplate('${t.id}')" class="w-full py-2 rounded-xl text-xs font-bold transition-all ${
+              isActive 
+                ? 'bg-cream-200 text-slate-600 cursor-default' 
+                : 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm'
+            }">
+              ${isActive ? 'Currently Loaded in Audit' : 'Load into Active Audit'}
+            </button>
+          </div>
+        </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function duplicateExistingTemplate(templateId) {
+      const source = APP_STATE.templates.find(t => t.id === templateId);
+      if (!source) return;
+
+      const cloned = {
+        id: 'cust_' + Date.now(),
+        title: `${source.title} (Custom Clone)`,
+        standard: source.standard,
+        area: source.area,
+        desc: source.desc,
+        items: JSON.parse(JSON.stringify(source.items || []))
+      };
+
+      APP_STATE.templates.push(cloned);
+
+      if (idb) {
+        const tx = idb.transaction(['custom_templates'], 'readwrite');
+        tx.objectStore('custom_templates').put(cloned);
+      }
+
+      renderTemplatesList();
+      showToast(`Cloned "${source.title}" as new customizable template!`, 'success');
+      // Open editor immediately for the cloned template
+      openTemplateBuilderModal(cloned.id);
+    }
+
+    function deleteCustomTemplate(templateId) {
+      const targetIndex = APP_STATE.templates.findIndex(t => t.id === templateId);
+      if (targetIndex === -1) return;
+
+      const title = APP_STATE.templates[targetIndex].title;
+      APP_STATE.templates.splice(targetIndex, 1);
+
+      if (idb) {
+        const tx = idb.transaction(['custom_templates'], 'readwrite');
+        tx.objectStore('custom_templates').delete(templateId);
+      }
+
+      // If active template was deleted, revert to IPW Farm default
+      if (APP_STATE.activeTemplate.id === templateId) {
+        loadPredefinedTemplate('ipw_farm');
+      }
+
+      renderTemplatesList();
+      showToast(`Template "${title}" removed.`, 'info');
+    }
+
+    function renderTeamRoster() {
+      const tbody = document.getElementById('team-roster-tbody');
+      if (!tbody) return;
+
+      tbody.innerHTML = APP_STATE.teamMembers.map(m => `
+        <tr class="hover:bg-cream-50/60">
+          <td class="px-4 py-3 font-bold text-slate-800">${m.name}</td>
+          <td class="px-4 py-3 text-slate-600 font-mono">${m.email}</td>
+          <td class="px-4 py-3 text-brand-700 font-semibold">${m.role}</td>
+          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">${m.status}</span></td>
+          <td class="px-4 py-3 text-right">
+            <button onclick="removeTeamMember('${m.id}')" class="text-red-500 hover:text-red-700 font-semibold text-xs">Remove</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openInviteModal() { document.getElementById('modal-invite').classList.remove('hidden'); }
+    function closeInviteModal() { document.getElementById('modal-invite').classList.add('hidden'); }
+
+    function submitInvitation() {
+      const name = document.getElementById('invite-input-name').value.trim();
+      const email = document.getElementById('invite-input-email').value.trim();
+      const role = document.getElementById('invite-input-role').value;
+
+      if (!name || !email) {
+        showToast('Please provide both name and email', 'warning');
+        return;
+      }
+
+      APP_STATE.teamMembers.push({
+        id: Date.now().toString(),
+        name: name,
+        email: email,
+        role: role,
+        status: 'Invited'
+      });
+
+      closeInviteModal();
+      renderTeamRoster();
+      showToast(`Invitation sent to ${email}`, 'success');
+    }
+
+    function removeTeamMember(id) {
+      APP_STATE.teamMembers = APP_STATE.teamMembers.filter(m => m.id !== id);
+      renderTeamRoster();
+      showToast('Team member removed', 'info');
+    }
+
+    function handleCustomLogoUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        APP_STATE.customLogoBase64 = event.target.result;
+        applyLogoToUI(event.target.result);
+        saveStateToIndexedDB();
+        showToast('Custom logo uploaded & saved!', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetToOfficialLogo() {
+      APP_STATE.customLogoBase64 = null;
+      applyLogoToUI(null);
+      saveStateToIndexedDB();
+      showToast('Reset to default ESG Comply logo', 'info');
+    }
+
+    function applyLogoToUI(dataUrl) {
+      const preview = document.getElementById('config-logo-preview');
+      const dossierSlot = document.getElementById('dossier-logo-slot');
+
+      if (dataUrl) {
+        const imgTag = `<img src="${dataUrl}" class="w-full h-full object-contain">`;
+        if (preview) preview.innerHTML = imgTag;
+        if (dossierSlot) dossierSlot.innerHTML = imgTag;
+      } else {
+        const svgDefault = `
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <path d="M50,10 L82,24 C82,54 68,78 50,90 C32,78 18,54 18,24 Z" fill="#f0f9ff" stroke="#0284c7" stroke-width="4"/>
+            <path d="M42,50 L48,56 L62,40" fill="none" stroke="#0284c7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        `;
+        if (preview) preview.innerHTML = svgDefault;
+        if (dossierSlot) dossierSlot.innerHTML = svgDefault;
+      }
+    }
+
+    function saveAdminSettings() {
+      APP_STATE.auditData.facility = document.getElementById('config-input-facility').value;
+      APP_STATE.auditData.auditor = document.getElementById('config-input-auditor').value;
+      APP_STATE.auditData.refNumber = document.getElementById('config-input-ref').value;
+
+      document.getElementById('display-facility-name').textContent = APP_STATE.auditData.facility;
+      saveStateToIndexedDB();
+      showToast('Facility configuration saved!', 'success');
+    }
+
+    function renderArchivedAuditsTable() {
+      const tbody = document.getElementById('archived-audits-table-body');
+      if (!tbody) return;
+
+      if (APP_STATE.archivedAudits.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-slate-400">No locked archives yet. Complete an audit and click "Lock & Archive".</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = APP_STATE.archivedAudits.map(a => `
+        <tr class="hover:bg-cream-50/60">
+          <td class="px-4 py-3 font-mono font-bold text-brand-700">${a.refNumber}</td>
+          <td class="px-4 py-3 text-slate-800 font-semibold">${a.standard}</td>
+          <td class="px-4 py-3 text-slate-600">${a.facility}</td>
+          <td class="px-4 py-3 text-slate-500">${a.date}</td>
+          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${a.score >= 85 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${a.score}%</span></td>
+          <td class="px-4 py-3 text-right">
+            <button onclick="restoreArchivedAudit('${a.id}')" class="text-brand-600 hover:underline font-bold text-xs">Reopen</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function restoreArchivedAudit(id) {
+      const arc = APP_STATE.archivedAudits.find(a => a.id === id);
+      if (!arc) return;
+      APP_STATE.auditData = JSON.parse(JSON.stringify(arc.data));
+      refreshAllUI();
+      switchView('audit');
+      showToast(`Restored audit ${arc.refNumber}`, 'info');
+    }
+
+    /* =========================================================================
+       12. TELEMETRY, OFFLINE ENGINE & NOTIFICATIONS
+       ========================================================================= */
+
+    function openTelemetryModal() {
+      document.getElementById('modal-telemetry').classList.remove('hidden');
+      updateTelemetryData();
+    }
+    function closeTelemetryModal() {
+      document.getElementById('modal-telemetry').classList.add('hidden');
+    }
+
+    async function updateTelemetryData() {
+      const onlineEl = document.getElementById('telemetry-online-state');
+      onlineEl.textContent = navigator.onLine ? 'Online (Connected)' : 'Offline (Field Mode)';
+      onlineEl.className = navigator.onLine ? 'font-bold text-emerald-600' : 'font-bold text-amber-600';
+
+      // Storage quota
+      if (navigator.storage && navigator.storage.estimate) {
+        const est = await navigator.storage.estimate();
+        const mbUsed = (est.usage / (1024 * 1024)).toFixed(1);
+        const mbTotal = (est.quota / (1024 * 1024)).toFixed(0);
+        document.getElementById('telemetry-storage-state').textContent = `${mbUsed} MB used of ${mbTotal} MB quota`;
+      }
+
+      // Battery
+      if (navigator.getBattery) {
+        const b = await navigator.getBattery();
+        document.getElementById('telemetry-battery-state').textContent = `${Math.round(b.level * 100)}% (${b.charging ? 'Charging' : 'Discharging'})`;
+      } else {
+        document.getElementById('telemetry-battery-state').textContent = 'Battery API not supported on this browser';
+      }
+    }
+
+    // Network connection listeners
+    window.addEventListener('online', () => {
+      document.getElementById('offline-banner').classList.add('hidden');
+      showToast('Connection restored. Online sync active.', 'success');
+    });
+    window.addEventListener('offline', () => {
+      document.getElementById('offline-banner').classList.remove('hidden');
+      showToast('Working in offline field mode.', 'warning');
+    });
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const bgColors = {
+        success: 'bg-emerald-600 text-white',
+        warning: 'bg-amber-500 text-white',
+        info: 'bg-slate-900 text-white'
+      };
+
+      toast.className = `px-4 py-2.5 rounded-2xl shadow-xl text-xs font-semibold flex items-center gap-2 pointer-events-auto transition-all transform translate-y-2 opacity-0 ${bgColors[type] || bgColors.info}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function refreshAllUI() {
+      // Refresh facility and active standard titles
+      document.getElementById('display-facility-name').textContent = APP_STATE.auditData.facility;
+      document.getElementById('active-standard-tag').textContent = APP_STATE.activeTemplate.title;
+      document.getElementById('display-standard-desc').textContent = APP_STATE.activeTemplate.desc;
+
+      // Populate category dropdown
+      const select = document.getElementById('select-category-filter');
+      const categories = [...new Set((APP_STATE.activeTemplate.items || []).map(i => i.category))];
+      select.innerHTML = '<option value="ALL">All Operational Modules</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
+
+      renderChecklist();
+      updateMetrics();
+      renderCapaView();
+      renderTemplatesList();
+      renderTeamRoster();
+      lucide.createIcons();
+    }
+
+    /* =========================================================================
+       13. APP BOOTSTRAP
+       ========================================================================= */
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      await initIndexedDB();
+      await loadStateFromIndexedDB();
+      lucide.createIcons();
+
+      if (!navigator.onLine) {
+        document.getElementById('offline-banner').classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
